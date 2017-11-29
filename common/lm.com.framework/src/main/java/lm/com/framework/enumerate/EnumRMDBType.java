@@ -53,6 +53,7 @@ public enum EnumRMDBType implements IBaseEnumInt<EnumRMDBType> {
 	}
 
 	private EnumRMDBType(Integer value, String description) {
+		this.name = name();
 		this.value = value;
 		this.description = description;
 	}
@@ -65,26 +66,44 @@ public enum EnumRMDBType implements IBaseEnumInt<EnumRMDBType> {
 		return enumValueMap.get(value);
 	}
 
+	/**
+	 * 获取名称
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * 设置名称
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * 获取值
+	 */
 	public Integer getValue() {
 		return value;
 	}
 
+	/**
+	 * 设置值
+	 */
 	public void setValue(Integer value) {
 		this.value = value;
 	}
 
+	/**
+	 * 获取描述
+	 */
 	public String getDescription() {
 		return description;
 	}
 
+	/**
+	 * 设置描述
+	 */
 	public void setDescription(String description) {
 		this.description = description;
 	}

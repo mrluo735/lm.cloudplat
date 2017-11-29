@@ -116,7 +116,7 @@ public class ObjectUtil {
 	public static <T> T toDataType(Class<T> clazz, Object object, T defaultValue) {
 		Object value = null == object ? "" : object;
 		if (clazz.equals(boolean.class) || clazz.equals(Boolean.class))
-			return (T) ((Boolean) BooleanUtil.toBoolean(value.toString(), (boolean) defaultValue));
+			return (T) ((Boolean) BooleanUtil.toBoolean(value.toString(), (Boolean) defaultValue));
 		if (clazz.equals(Time.class))
 			return (T) TimeUtil.toTime(value.toString(), (Time) defaultValue);
 		if (clazz.equals(Date.class))

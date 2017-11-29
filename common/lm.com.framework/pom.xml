@@ -49,7 +49,6 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>${gson.version}</version>
 		</dependency>
 		<!-- org.json包 -->
 		<dependency>
@@ -60,7 +59,6 @@
 		<dependency>
 			<groupId>com.sun.mail</groupId>
 			<artifactId>javax.mail</artifactId>
-			<version>${javax-mail.version}</version>
 		</dependency>
 		<!-- javaee-api包 -->
 		<dependency>
@@ -137,7 +135,6 @@
 		<dependency>
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
-			<version>${jedis.version}</version>
 		</dependency>
 		<!-- mybatis包 -->
 		<dependency>
@@ -149,7 +146,6 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>${hibernate.version}</version>
 		</dependency>
 		<!-- druid包 -->
 		<dependency>
@@ -172,9 +168,9 @@
 			<artifactId>httpclient</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>org.jsoup</groupId>
-		    <artifactId>jsoup</artifactId>
-		    <version>${jsoup.version}</version>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>${jsoup.version}</version>
 		</dependency>
 
 		<dependency>
@@ -201,6 +197,11 @@
 			<groupId>com.belerweb</groupId>
 			<artifactId>pinyin4j</artifactId>
 			<version>${pinyin4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.axet</groupId>
+			<artifactId>kaptcha</artifactId>
+			<version>${kaptcha.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.lalyos</groupId>

@@ -109,7 +109,21 @@ public class RMDBUtil {
 	}
 
 	/**
-	 * 根据连接驱动获取关系型数据库类型
+	 * 重载+1 根据连接驱动获取关系型数据库类型
+	 * 
+	 * @param driver
+	 * @param defaultValue
+	 * @return
+	 */
+	public static String getRMDBType(String driver, String defaultValue) {
+		EnumRMDBType rmdbType = getRMDBType(driver);
+		if (rmdbType == null)
+			return defaultValue;
+		return rmdbType.getName();
+	}
+
+	/**
+	 * 重载+2 根据连接驱动获取关系型数据库类型
 	 * 
 	 * @param driver
 	 * @return

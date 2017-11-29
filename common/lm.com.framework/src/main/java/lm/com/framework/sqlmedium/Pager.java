@@ -19,6 +19,35 @@ public class Pager implements Serializable {
 	 */
 	private static final long serialVersionUID = 8608294378934325983L;
 
+	/**
+	 * 列表达式字段常量
+	 */
+	public static final String COLUMNPATTEN = "columnPattern";
+	/**
+	 * 排序字段常量
+	 */
+	public static final String ORDERBY = "orderBy";
+	/**
+	 * 条件字段常量
+	 */
+	public static final String WHERE = "where";
+	/**
+	 * 页码字段常量
+	 */
+	public static final String PAGEINDEX = "pageIndex";
+	/**
+	 * 页大小字段常量
+	 */
+	public static final String PAGESIZE = "pageSize";
+	/**
+	 * 是否统计总数字段常量
+	 */
+	public static final String ISSTATCOUNT = "isStatCount";
+	/**
+	 * 总数字段常量
+	 */
+	public static final String COUNT = "count";
+
 	private String columnPattern = "*";
 
 	private String orderBy = "";
