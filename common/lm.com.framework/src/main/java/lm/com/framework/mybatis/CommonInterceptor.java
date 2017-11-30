@@ -55,7 +55,11 @@ import lm.com.framework.StringUtil;
 // @formatter:on
 public class CommonInterceptor implements Interceptor {
 	private static final Logger logger = LoggerFactory.getLogger(CommonInterceptor.class);
-
+	/**
+	 * 数据库方言
+	 */
+	private String dialect = "mysql";
+	
 	private boolean isLogger = true;
 
 	/**
@@ -109,7 +113,7 @@ public class CommonInterceptor implements Interceptor {
 
 			String msg = String.format("Mapper方法[%s]执行了[%s]操作, 耗时[%s]ms, sql语句如下:%s", mapperId, method.getName(),
 					end - start, JavaUtil.getLineSeparator());
-			msg += SQLUtils.format(sql, RMDBUtil.getRMDBType(driverName, "mysql").toLowerCase());
+			msg += SQLUtils.format(sql, RMDBUtil.getRMDBType(driverName, this.dialect).toLowerCase());
 			msg += JavaUtil.getLineSeparator() + "参数如下:" + JavaUtil.getLineSeparator();
 			msg += JsonUtil.toJsonUseJackson(parameterObject);
 			this.printLog(msg);

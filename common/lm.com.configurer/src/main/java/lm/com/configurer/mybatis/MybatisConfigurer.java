@@ -43,24 +43,21 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class MybatisConfigurer {
 	private static final Logger logger = LoggerFactory.getLogger(MybatisConfigurer.class);
-	
+
+	@Value("${mybatis.interceptor}")
+	private String interceptor = "";
 	@Value("${mybatis.mapperLocations}")
 	private String mapperLocations = "";
 
 	@Autowired
 	@Qualifier("druidDataSource")
 	private DataSource dataSource;
-	@Autowired
-	private Interceptor mybatisInterceptor;
 
 	@Bean(name = "sqlSessionFactory")
 	public SqlSessionFactory sqlSessionFactoryBean() {
 		SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
 		bean.setDataSource(dataSource);
 		// bean.setTypeAliasesPackage("tk.mybatis.springboot.model");
-
-		// 添加插件
-		// bean.setPlugins(new Interceptor[]{pageHelper});
 
 		try {
 			// 添加XML目录
@@ -79,9 +76,14 @@ public class MybatisConfigurer {
 			bean.setMapperLocations(resources.toArray(new Resource[0]));
 
 			// 添加拦截器
-			Interceptor[] interceptors = new Interceptor[] { mybatisInterceptor };
-			bean.setPlugins(interceptors);
-			
+			if ("common".equalsIgnoreCase(this.interceptor)) {
+				Interceptor[] interceptors = new Interceptor[] { this.commonInterceptor() };
+				bean.setPlugins(interceptors);
+			} else if ("paged".equalsIgnoreCase(this.interceptor)) {
+				Interceptor[] interceptors = new Interceptor[] { this.pagedInterceptor() };
+				bean.setPlugins(interceptors);
+			}
+
 			logger.info("※※※※※※※※※※ Mybatis SessionFactory创建成功！ ※※※※※※※※※※");
 			return bean.getObject();
 		} catch (Exception e) {
@@ -91,13 +93,23 @@ public class MybatisConfigurer {
 	}
 
 	/**
-	 * 拦截器
+	 * 通用拦截器
 	 * 
 	 * @return
 	 */
 	@Bean
-	public Interceptor mybatisInterceptor() {
-		return new lm.com.framework.mybatis.MybatisInterceptor();
+	public Interceptor commonInterceptor() {
+		return new lm.com.framework.mybatis.CommonInterceptor();
+	}
+
+	/**
+	 * 分页拦截器
+	 * 
+	 * @return
+	 */
+	@Bean
+	public Interceptor pagedInterceptor() {
+		return new lm.com.framework.mybatis.PagedInterceptor();
 	}
 
 	/**

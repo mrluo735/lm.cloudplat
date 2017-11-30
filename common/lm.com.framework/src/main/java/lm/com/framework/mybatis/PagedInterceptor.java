@@ -102,7 +102,7 @@ public class PagedInterceptor implements Interceptor {
 			String msg = String.format("Mapper方法[%s]执行了[%s]操作, 耗时[%s]ms, sql语句如下:%s", mapperId, method.getName(),
 					end - start, JavaUtil.getLineSeparator());
 			msg += SQLUtils.format(sql, this.dialect);
-			msg += JavaUtil.getLineSeparator() + "参数如下:" + JavaUtil.getLineSeparator();
+			msg += JavaUtil.getLineSeparator() + "参数信息如下:" + JavaUtil.getLineSeparator();
 			msg += JsonUtil.toJsonUseJackson(parameterObject);
 			this.printLog(msg);
 		} else if (target instanceof ParameterHandler) {

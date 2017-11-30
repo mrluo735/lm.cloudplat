@@ -11,6 +11,8 @@ package lm.com.framework.druid;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
@@ -34,8 +36,11 @@ import com.alibaba.druid.proxy.jdbc.JdbcParameter;
 import com.alibaba.druid.proxy.jdbc.PreparedStatementProxy;
 import com.alibaba.druid.proxy.jdbc.ResultSetProxy;
 import com.alibaba.druid.proxy.jdbc.StatementProxy;
+import com.alibaba.druid.sql.SQLUtils;
 
 import lm.com.framework.JavaUtil;
+import lm.com.framework.RMDBUtil;
+import lm.com.framework.ReflectUtil;
 
 /**
  * 自定义FilterAdapter
@@ -547,13 +552,20 @@ public class CustomFilterAdapter extends FilterAdapter implements InitializingBe
 	 * @param statement
 	 */
 	private void printLogger(String methodName, StatementProxy statement) {
+		String dialect = "mysql";
+		try {
+			String driverName = statement.getConnection().getMetaData().getDriverName();
+			dialect = RMDBUtil.getRMDBType(driverName, "mysql").toLowerCase();
+		} catch (Exception ex) {
+
+		}
 		String sql = statement.getBatchSql();
 		int parameterSize = statement.getParametersSize();
 		Map<Integer, JdbcParameter> parameterMap = statement.getParameters();
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("%s 内容如下:", methodName)).append(JavaUtil.getLineSeparator());
-		sb.append("原始sql语句=").append(sql).append(JavaUtil.getLineSeparator());
+		sb.append("原始sql语句=").append(SQLUtils.format(sql, dialect)).append(JavaUtil.getLineSeparator());
 		sb.append(String.format("参数个数=%s, 参数列表如下:", parameterSize)).append(JavaUtil.getLineSeparator());
 		for (int i = 0; i < parameterSize; i++) {
 			JdbcParameter parameter = parameterMap.get(i);
@@ -561,9 +573,32 @@ public class CustomFilterAdapter extends FilterAdapter implements InitializingBe
 				continue;
 
 			// java.sql.Types;
-			sb.append(String.format("索引%s	%s(%s) = %s", i, parameter.getSqlType(), parameter.getLength(),
-					parameter.getValue())).append(JavaUtil.getLineSeparator());
+			int sqlType = parameter.getSqlType();
+			sb.append(String.format("索引%s	%s[%s](%s) = %s", i, this.getSqlTypeName(sqlType), sqlType,
+					parameter.getLength(), parameter.getValue())).append(JavaUtil.getLineSeparator());
 		}
 		logger.info(sb.toString());
+	}
+
+	/**
+	 * 获取sqlType的名称
+	 * 
+	 * @param sqlType
+	 * @return
+	 */
+	private String getSqlTypeName(int sqlType) {
+		String name = "";
+		try {
+			Constructor<java.sql.Types> constructor = java.sql.Types.class.getConstructor();
+			constructor.setAccessible(true);
+			java.sql.Types instance = constructor.newInstance();
+			Field[] fieldArray = java.sql.Types.class.getFields();
+			for (Field item : fieldArray) {
+				if (sqlType == item.getInt(instance))
+					name = item.getName();
+			}
+		} catch (Exception ex) {
+		}
+		return name;
 	}
 }
