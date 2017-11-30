@@ -1,0 +1,33 @@
+server:
+  port: 7040
+management:
+  port: 7046
+  context-path: /
+turbine:
+  app-config: lm.cloud.boot.admin.server
+  aggregator:
+    clusterConfig: prontera
+  cluster-name-expression: metadata['cluster']
+  instanceUrlSuffix:
+    prontera: /hystrix.stream
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:7000/eureka/
+  instance:
+    metadata-map:
+      management:
+        port: ${management.port}
+        context-path: ${management.context-path}
+      health:
+        path: ${management.context-path}/health
+    status-page-url-path: ${management.context-path}/info
+    health-check-url-path: ${management.context-path}/health
+spring:
+  application:
+    name: lm.cloud.hystrix.server
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true
+        
