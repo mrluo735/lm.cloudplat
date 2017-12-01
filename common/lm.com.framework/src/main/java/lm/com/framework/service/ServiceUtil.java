@@ -1,7 +1,7 @@
 /**
  * @title ServiceUtil.java
  * @description TODO
- * @package lm.com.service
+ * @package lm.com.framework.service
  * @author mrluo735
  * @since JDK1.7
  * @date 2016年12月27日下午2:31:39
@@ -18,6 +18,7 @@ import lm.com.framework.RMDBUtil;
 import lm.com.framework.StringUtil;
 import lm.com.framework.sqlmedium.FilterExpression;
 import lm.com.framework.sqlmedium.Pager;
+import lm.com.framework.sqlmedium.SqlKey;
 
 /**
  * 
@@ -32,7 +33,7 @@ public class ServiceUtil {
 	 * @return
 	 */
 	public static Pager toPager(RequestDTO request) {
-		return toPager(request, false, null);
+		return toPager(request, null);
 	}
 
 	/**
@@ -44,40 +45,50 @@ public class ServiceUtil {
 	 * @param driverName
 	 * @return
 	 */
-	public static Pager toPager(RequestDTO request, boolean escapeColumn, String driverName) {
+	public static Pager toPager(RequestDTO request, String driverName) {
 		Pager pager = new Pager();
-		pager.setPageIndex(request.<Integer>get("pageIndex", Integer.class, 1));
-		pager.setPageSize(request.<Integer>get("pageSize", Integer.class, 20));
-		pager.setOrderBy(ServiceUtil.toSort(request.getSorts(), escapeColumn, driverName));
+		pager.setPageIndex(request.getInteger(Pager.PAGEINDEX, 1));
+		pager.setPageSize(request.getInteger(Pager.PAGESIZE, 20));
+		pager.setOrderBy(ServiceUtil.toSort(request.getSorts(), driverName));
 		for (Entry<Object, Object> item : request.getData().entrySet()) {
-			if ("columnPattern".equalsIgnoreCase(item.getKey().toString())
-					|| "pageIndex".equalsIgnoreCase(item.getKey().toString())
-					|| "pageSize".equalsIgnoreCase(item.getKey().toString())
-					|| "isStatCount".equalsIgnoreCase(item.getKey().toString()))
+			if (Pager.COLUMNPATTEN.equalsIgnoreCase(item.getKey().toString())
+					|| Pager.PAGEINDEX.equalsIgnoreCase(item.getKey().toString())
+					|| Pager.PAGESIZE.equalsIgnoreCase(item.getKey().toString())
+					|| Pager.ISSTATCOUNT.equalsIgnoreCase(item.getKey().toString()))
 				continue;
 			pager.setWhereMap(item.getKey().toString(), item.getValue());
 		}
 		// pager.setWhere(ServiceUtil.toWhere(request.getGroups(),
 		// request.getFilters(), driverName));
 
-		if (request.containsKey("columnPattern"))
-			pager.setColumnPattern(request.<String>get("columnPattern"));
-		if (request.containsKey("isStatCount"))
-			pager.setIsStatCount(request.<Boolean>get("isStatCount", Boolean.class, true));
+		if (request.containsKey(Pager.COLUMNPATTEN))
+			pager.setColumnPattern(request.getString(Pager.COLUMNPATTEN));
+		if (request.containsKey(Pager.ISSTATCOUNT))
+			pager.setIsStatCount(request.getBoolean(Pager.ISSTATCOUNT, true));
 		return pager;
 	}
 
 	/**
-	 * 转成排序字符串
+	 * 重载+1 转成排序字符串
 	 * 
 	 * @param sorts
-	 * @param escapeColumn
-	 *            转义列名
 	 * @param driverName
 	 * @return
 	 */
-	public static String toSort(List<SortDTO> sorts, boolean escapeColumn, String driverName) {
+	public static String toSort(List<SortDTO> sorts) {
+		return toSort(sorts, null);
+	}
+
+	/**
+	 * 重载+2 转成排序字符串
+	 * 
+	 * @param sorts
+	 * @param driverName
+	 * @return
+	 */
+	public static String toSort(List<SortDTO> sorts, String driverName) {
 		List<String> sortList = new ArrayList<>();
+		boolean escapeColumn = !StringUtil.isNullOrWhiteSpace(driverName);
 		for (SortDTO sort : sorts) {
 			String property = sort.getProperty();
 			if (escapeColumn) {
@@ -89,9 +100,9 @@ public class ServiceUtil {
 					property = RMDBUtil.escapeColumn(sort.getProperty(), driverName);
 			}
 			if (sort.getAsc())
-				sortList.add(property + " ASC");
+				sortList.add(String.format("%s %s", property, SqlKey.ASC));
 			else
-				sortList.add(property + " DESC");
+				sortList.add(String.format("%s %s", property, SqlKey.DESC));
 		}
 		return StringUtil.join(", ", sortList);
 	}
