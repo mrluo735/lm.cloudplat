@@ -12,6 +12,7 @@ package lm.com.configurer.redis;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
@@ -51,6 +52,8 @@ public class RedisConfigurer {
 	private int timeout;
 	@Value("${redis.database:0}")
 	private int database;
+	@Value("${redis.cache.expiration:86400}")
+	private int expiration;
 
 	/**
 	 * jedis连接池
@@ -113,5 +116,16 @@ public class RedisConfigurer {
 	public JdkSerializationRedisSerializer jdkSerializationRedisSerializer() {
 		JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
 		return jdkSerializationRedisSerializer;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	@Bean
+	public RedisCacheManager redisCacheManager() {
+		RedisCacheManager cacheManager = new RedisCacheManager(this.redisTemplate());
+		cacheManager.setDefaultExpiration(this.expiration);
+		return cacheManager;
 	}
 }

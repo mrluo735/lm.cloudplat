@@ -589,13 +589,15 @@ public class CustomFilterAdapter extends FilterAdapter implements InitializingBe
 	private String getSqlTypeName(int sqlType) {
 		String name = "";
 		try {
-			Constructor<java.sql.Types> constructor = java.sql.Types.class.getConstructor();
+			Constructor<java.sql.Types> constructor = java.sql.Types.class.getDeclaredConstructor();
 			constructor.setAccessible(true);
 			java.sql.Types instance = constructor.newInstance();
-			Field[] fieldArray = java.sql.Types.class.getFields();
+			Field[] fieldArray = ReflectUtil.getDeclaredFields(instance);
 			for (Field item : fieldArray) {
-				if (sqlType == item.getInt(instance))
+				if (sqlType == item.getInt(instance)) {
 					name = item.getName();
+					break;
+				}
 			}
 		} catch (Exception ex) {
 		}

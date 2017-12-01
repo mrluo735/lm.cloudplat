@@ -41,7 +41,7 @@ public class ResultSetUtil {
 	public static <T extends Object> T toBean(ResultSet rs, Class<T> clazz)
 			throws SQLException, InstantiationException, IllegalAccessException {
 		T bean = (T) clazz.newInstance();
-		Field[] fields = ReflectUtil.getDeclareFields(bean);
+		Field[] fields = ReflectUtil.getDeclaredFields(bean);
 		while (rs.next()) {
 			toBean(rs, bean, fields);
 			break;
@@ -64,7 +64,7 @@ public class ResultSetUtil {
 		List<T> list = new ArrayList<>();
 
 		T bean = clazz.newInstance();
-		Field[] fields = ReflectUtil.getDeclareFields(bean);
+		Field[] fields = ReflectUtil.getDeclaredFields(bean);
 		while (rs.next()) {
 			bean = clazz.newInstance();
 			toBean(rs, bean, fields);

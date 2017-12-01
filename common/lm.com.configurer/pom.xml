@@ -21,6 +21,11 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>dubbo</artifactId>
+			<version>${alibaba-dubbo.version}</version>
+		</dependency>
 		<!-- elasticsearch依赖 -->
 		<!-- 此版本的spring-boot-data-elasticsearch只支持到elasticsearch2.4.4 -->
 		<!-- <dependency> -->

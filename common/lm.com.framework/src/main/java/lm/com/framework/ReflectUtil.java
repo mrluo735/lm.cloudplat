@@ -1,6 +1,7 @@
 package lm.com.framework;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,6 +33,54 @@ public final class ReflectUtil {
 	}
 
 	/**
+	 * 重载+1 获取实例
+	 * 
+	 * @param clazz
+	 * @param parameterTypes
+	 * @param initargs
+	 * @return
+	 */
+	public static <T> T getInstance(Class<T> clazz, Class<?>... parameterTypes) {
+		return getInstance(clazz, parameterTypes);
+	}
+
+	/**
+	 * 重载+2 获取实例
+	 * 
+	 * @param clazz
+	 * @param parameterTypes
+	 * @param initargs
+	 * @return
+	 */
+	public static <T> T getInstance(Class<T> clazz, Object... initargs) {
+		try {
+			Constructor<T> constructor = clazz.getDeclaredConstructor();
+			constructor.setAccessible(true);
+			return constructor.newInstance(initargs);
+		} catch (Exception ex) {
+			return null;
+		}
+	}
+
+	/**
+	 * 重载+3 获取实例
+	 * 
+	 * @param clazz
+	 * @param parameterTypes
+	 * @param initargs
+	 * @return
+	 */
+	public static <T> T getInstance(Class<T> clazz, Class<?>[] parameterTypes, Object... initargs) {
+		try {
+			Constructor<T> constructor = clazz.getDeclaredConstructor(parameterTypes);
+			constructor.setAccessible(true);
+			return constructor.newInstance(initargs);
+		} catch (Exception ex) {
+			return null;
+		}
+	}
+
+	/**
 	 * 获取obj对象的字段
 	 * <p>
 	 * 包括父类的字段
@@ -40,7 +89,7 @@ public final class ReflectUtil {
 	 * @param obj
 	 * @return
 	 */
-	public static Field[] getDeclareFields(Object obj) {
+	public static Field[] getDeclaredFields(Object obj) {
 		List<Field> list = new ArrayList<>();
 		if (obj == null) {
 			return list.toArray(new Field[0]);
@@ -71,6 +120,32 @@ public final class ReflectUtil {
 				.getSuperclass()) {
 			try {
 				return superClass.getDeclaredField(fieldName);
+			} catch (Exception e) {
+				// e.printStackTrace();
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 获取obj对象fieldValue的Field
+	 * 
+	 * @param obj
+	 * @param fieldValue
+	 * @return
+	 */
+	public static Field getFieldByFieldValue(Object obj, Object fieldValue) {
+		if (obj == null || fieldValue == null) {
+			return null;
+		}
+		for (Class<?> superClass = obj.getClass(); superClass != Object.class; superClass = superClass
+				.getSuperclass()) {
+			try {
+				Field[] fieldArray = superClass.getDeclaredFields();
+				for (Field item : fieldArray) {
+					if (fieldValue.equals(item.get(obj)))
+						return item;
+				}
 			} catch (Exception e) {
 				// e.printStackTrace();
 			}
@@ -159,14 +234,11 @@ public final class ReflectUtil {
 			// 此方法返回这个类中的指定字段的Field对象
 			Field field = getFieldByFieldName(obj, fieldName);
 			/**
-			 * public void setAccessible(boolean flag) throws
-			 * SecurityException将此对象的 accessible 标志设置为指示的布尔值。值为 true
-			 * 则指示反射的对象在使用时应该取消 Java 语言访问检查。值为 false 则指示反射的对象应该实施 Java 语言访问检查。
-			 * 首先，如果存在安全管理器，则在 ReflectPermission("suppressAccessChecks") 权限下调用
-			 * checkPermission 方法。 如果 flag 为 true，并且不能更改此对象的可访问性（例如，如果此元素对象是
-			 * Class 类的 Constructor 对象），则会引发 SecurityException。 如果此对象是
-			 * java.lang.Class 类的 Constructor 对象，并且 flag 为 true，则会引发
-			 * SecurityException。 参数： flag - accessible 标志的新值 抛出：
+			 * public void setAccessible(boolean flag) throws SecurityException将此对象的 accessible 标志设置为指示的布尔值。值为 true
+			 * 则指示反射的对象在使用时应该取消 Java 语言访问检查。值为 false 则指示反射的对象应该实施 Java 语言访问检查。 首先，如果存在安全管理器，则在
+			 * ReflectPermission("suppressAccessChecks") 权限下调用 checkPermission 方法。 如果 flag 为
+			 * true，并且不能更改此对象的可访问性（例如，如果此元素对象是 Class 类的 Constructor 对象），则会引发 SecurityException。 如果此对象是 java.lang.Class
+			 * 类的 Constructor 对象，并且 flag 为 true，则会引发 SecurityException。 参数： flag - accessible 标志的新值 抛出：
 			 * SecurityException - 如果请求被拒绝。
 			 */
 			if (field.isAccessible()) {// 获取此对象的 accessible 标志的值。
@@ -219,13 +291,37 @@ public final class ReflectUtil {
 	}
 
 	/**
+	 * 获取类的所有方法
+	 * 
+	 * @param className
+	 * @return
+	 */
+	public static Method[] findDeclaredMethods(String className) {
+		Class<?> clazz;
+		try {
+			clazz = Class.forName(className);
+			return clazz.getDeclaredMethods();
+		} catch (ClassNotFoundException e) {
+		}
+		return null;
+	}
+
+	/**
+	 * 获取类的所有方法
+	 * 
+	 * @param clazz
+	 * @return
+	 */
+	public static Method[] findDeclaredMethods(Class<?> clazz) {
+		return clazz.getDeclaredMethods();
+	}
+
+	/**
 	 * 根据方法名称和参数类型查找方法
 	 * <p>
-	 * Returns <code>null</code> if no {link Method} can be found. param clazz
-	 * the class to introspect param name the name of the method param
-	 * paramTypes the parameter types of the method (may be <code>null</code> to
-	 * indicate any signature) return the Method object, or <code>null</code> if
-	 * none found
+	 * Returns <code>null</code> if no {link Method} can be found. param clazz the class to introspect param name the
+	 * name of the method param paramTypes the parameter types of the method (may be <code>null</code> to indicate any
+	 * signature) return the Method object, or <code>null</code> if none found
 	 */
 	public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
 		Class<?> searchType = clazz;
