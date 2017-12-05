@@ -129,6 +129,23 @@ public class ConfigurerConstant {
 	}
 	// endregion
 
+	/**
+	 * Dubbo
+	 * 
+	 * @author mrluo735
+	 *
+	 */
+	public static class Dubbo {
+		/**
+		 * 生产端
+		 */
+		public static final String PRODUCER = "lm.com.configurer.dubbo.producer";
+		/**
+		 * 消费端
+		 */
+		public static final String CONSUMER = "lm.com.configurer.dubbo.consumer";
+	}
+
 	// region Feign
 	/**
 	 * Feign

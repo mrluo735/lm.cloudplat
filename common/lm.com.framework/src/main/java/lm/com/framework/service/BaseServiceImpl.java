@@ -9,6 +9,7 @@
  */
 package lm.com.framework.service;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Locale;
@@ -18,12 +19,14 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 
+import lm.com.framework.IntegerUtil;
 import lm.com.framework.JsonUtil;
 import lm.com.framework.ReflectUtil;
 import lm.com.framework.ThreadUtil;
+import lm.com.framework.http.EnumHttpStatus;
 
 /**
  * 所有服务接口抽象实现类
@@ -41,17 +44,29 @@ public abstract class BaseServiceImpl implements IService {
 	private DataSource dataSource;
 
 	@Autowired
-	protected ReloadableResourceBundleMessageSource messageSource;
+	protected MessageSource messageSource;
 
 	/**
 	 * 获取数据库驱动名称
 	 * 
 	 * @return
-	 * @throws SQLException
 	 */
-	protected String getDriverName() throws SQLException {
-		DatabaseMetaData databaseMetaData = this.dataSource.getConnection().getMetaData();
-		return databaseMetaData.getDriverName();
+	protected String getDriverName() {
+		Connection connection = null;
+		try {
+			connection = this.dataSource.getConnection();
+			DatabaseMetaData databaseMetaData = connection.getMetaData();
+			return databaseMetaData.getDriverName();
+		} catch (SQLException ex) {
+			throw new RuntimeException(ex);
+		} finally {
+			try {
+				if (null != connection && !connection.isClosed())
+					connection.close();
+			} catch (SQLException ex) {
+				throw new RuntimeException(ex);
+			}
+		}
 	}
 
 	/**
@@ -66,8 +81,8 @@ public abstract class BaseServiceImpl implements IService {
 		long nanoTime = System.nanoTime();
 		String contextJson = "", paramJson = "";
 		try {
-			if (null != request.getContext())
-				contextJson = JsonUtil.toJsonUseJackson(request.getContext());
+			if (null != request.getIdentity())
+				contextJson = JsonUtil.toJsonUseJackson(request.getIdentity());
 			paramJson = JsonUtil.toJsonUseJackson(request);
 
 			return (ResponseDTO) ReflectUtil.invokeMethod(getService(), request.getMethod(), request);
@@ -85,7 +100,7 @@ public abstract class BaseServiceImpl implements IService {
 	}
 
 	/**
-	 * 获取提示信息
+	 * 重载+1 获取提示信息
 	 * 
 	 * @param code
 	 * @param locale
@@ -95,7 +110,67 @@ public abstract class BaseServiceImpl implements IService {
 		String className = ThreadUtil.getCurrentClassName(3);
 		String methodName = ThreadUtil.getCurrentMethodName(3);
 		String key = String.format("%s.%s.%s", className, methodName, code);
-		return this.messageSource.getMessage(key, null, locale);
+		return this.messageSource.getMessage(key, null, "", locale);
+	}
+
+	/**
+	 * 重载+2 获取提示信息
+	 * 
+	 * @param code
+	 * @param locale
+	 * @param level
+	 * @return
+	 */
+	protected String getMessage(int code, Locale locale, int level) {
+		String className = ThreadUtil.getCurrentClassName(level);
+		String methodName = ThreadUtil.getCurrentMethodName(level);
+		String key = String.format("%s.%s.%s", className, methodName, code);
+		return this.messageSource.getMessage(key, null, "", locale);
+	}
+
+	/**
+	 * 重载+1 获取返回结果
+	 * 
+	 * @param rowCount
+	 * @param locale
+	 * @return
+	 */
+	protected ResponseDTO doReturnResult(ResponseDTO responseDTO, int rowCount, Locale locale) {
+		final ResponseDTO respDTO = responseDTO;
+		Integer code = EnumHttpStatus.Two_OK.getValue();
+		String message = getMessage(code, locale, 4);
+		if (rowCount > 0) {
+			respDTO.setMessage(message);
+			return respDTO;
+		}
+		code = IntegerUtil.toInteger(EnumHttpStatus.Four_BadRequest.getValue().toString() + Math.abs(rowCount),
+				EnumHttpStatus.Four_BadRequest.getValue());
+		message = getMessage(code, locale, 4);
+
+		respDTO.setSuccess(false);
+		respDTO.setCode(code);
+		respDTO.setMessage(message);
+		return respDTO;
+	}
+
+	/**
+	 * 重载+2 获取返回结果
+	 * 
+	 * @param rowCount
+	 * @param locale
+	 * @return
+	 */
+	protected <T> ResponseDTO doReturnResult(ResponseDTO responseDTO, T data, Locale locale) {
+		final ResponseDTO respDTO = responseDTO;
+		if (data != null) {
+			respDTO.setData(data);
+			return respDTO;
+		}
+
+		respDTO.setSuccess(false);
+		respDTO.setCode(EnumHttpStatus.Four_BadRequest.getValue());
+		respDTO.setMessage(EnumHttpStatus.Four_BadRequest.getDescription());
+		return respDTO;
 	}
 
 	/**

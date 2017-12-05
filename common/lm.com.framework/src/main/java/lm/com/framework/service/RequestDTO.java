@@ -30,7 +30,7 @@ public class RequestDTO implements Serializable {
 	 */
 	private static final long serialVersionUID = 1380879395062010464L;
 
-	private Map<Object, Object> data = new HashMap<Object, Object>();
+	private Map<String, Object> data = new HashMap<String, Object>();
 
 	// private List<GroupDTO> groups = new ArrayList<GroupDTO>();
 	//
@@ -38,7 +38,8 @@ public class RequestDTO implements Serializable {
 
 	private List<SortDTO> sorts = new ArrayList<SortDTO>();
 
-	private IdentityDTO<String> context = new IdentityDTO<>();
+	@SuppressWarnings("rawtypes")
+	private IdentityDTO identity = new IdentityDTO();
 
 	private String method;
 
@@ -66,9 +67,9 @@ public class RequestDTO implements Serializable {
 	 * @param method
 	 * @param context
 	 */
-	public <T> RequestDTO(String method, IdentityDTO<String> context) {
+	public <T> RequestDTO(String method, IdentityDTO<T> identity) {
 		this.method = method;
-		this.context = context;
+		this.identity = identity;
 	}
 
 	/**
@@ -76,7 +77,7 @@ public class RequestDTO implements Serializable {
 	 * 
 	 * @return
 	 */
-	public Map<Object, Object> getData() {
+	public Map<String, Object> getData() {
 		return this.data;
 	}
 
@@ -178,8 +179,8 @@ public class RequestDTO implements Serializable {
 	 * 
 	 * @return
 	 */
-	public IdentityDTO<String> getContext() {
-		return context;
+	public <T> IdentityDTO<T> getIdentity() {
+		return identity;
 	}
 
 	/**
@@ -187,8 +188,8 @@ public class RequestDTO implements Serializable {
 	 * 
 	 * @param context
 	 */
-	public void setContext(IdentityDTO<String> context) {
-		this.context = context;
+	public <T> void setIdentity(IdentityDTO<T> identity) {
+		this.identity = identity;
 	}
 
 	/**
@@ -241,7 +242,7 @@ public class RequestDTO implements Serializable {
 	 * @param value
 	 * @return
 	 */
-	public RequestDTO put(Object key, Object value) {
+	public RequestDTO put(String key, Object value) {
 		data.put(key, value);
 		return this;
 	}

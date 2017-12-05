@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class MybatisConfigurer {
 	private static final Logger logger = LoggerFactory.getLogger(MybatisConfigurer.class);
 
-	@Value("${mybatis.interceptor}")
+	@Value("${mybatis.interceptor:common}")
 	private String interceptor = "";
 	@Value("${mybatis.mapperLocations}")
 	private String mapperLocations = "";

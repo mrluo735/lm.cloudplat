@@ -13,10 +13,8 @@
 
 	<modules>
 		<module>/common/lm.com.framework</module>
-		<module>/common/lm.com.tlat</module>
-		<module>/common/lm.com.service</module>
-		<module>/common/lm.com.kafka</module>
 		<module>/common/lm.com.configurer</module>
+		<!-- <module>/common/lm.com.kafka</module> -->
 
 		<module>/common.cloud/lm.cloud.eureka.server</module>
 		<module>/common.cloud/lm.cloud.config.server</module>
@@ -27,44 +25,44 @@
 		<module>/common.cloud/lm.cloud.zipkin.server</module>
 		<module>/common.cloud/lm.cloud.storage.server</module>
 
-		<module>/common.project/lm.pro.aop</module>
-		<module>/common.project/lm.pro.core</module>
-		<module>/common.project/lm.pro.systemlog.model</module>
-		<module>/common.project/lm.pro.cloud.server.core</module>
-		<module>/common.project/lm.pro.cloud.server</module>
-		<module>/common.project/lm.pro.web.core</module>
+		<!-- <module>/common.project/lm.pro.aop</module> -->
+		<!-- <module>/common.project/lm.pro.core</module> -->
+		<!-- <module>/common.project/lm.pro.systemlog.model</module> -->
+		<!-- <module>/common.project/lm.pro.cloud.server.core</module> -->
+		<!-- <module>/common.project/lm.pro.cloud.server</module> -->
+		<!-- <module>/common.project/lm.pro.web.core</module> -->
 
-		<module>/secureshell/lm.pro.secureshell.model</module>
-		<module>/secureshell/lm.pro.secureshell.service.impl</module>
-		<module>/secureshell/lm.pro.secureshell.cloud.server</module>
-		<module>/secureshell/lm.pro.secureshell.cloud.consumer</module>
-		<module>/secureshell/lm.pro.secureshell.dubbo.server</module>
-		<module>/secureshell/lm.pro.secureshell.web</module>
+		<!-- <module>/secureshell/lm.pro.secureshell.model</module> -->
+		<!-- <module>/secureshell/lm.pro.secureshell.service.impl</module> -->
+		<!-- <module>/secureshell/lm.pro.secureshell.cloud.server</module> -->
+		<!-- <module>/secureshell/lm.pro.secureshell.cloud.consumer</module> -->
+		<!-- <module>/secureshell/lm.pro.secureshell.dubbo.server</module> -->
+		<!-- <module>/secureshell/lm.pro.secureshell.web</module> -->
 
-		<module>/dictionary/lm.pro.dictionary.model</module>
-		<module>/dictionary/lm.pro.dictionary.service.impl</module>
-		<module>/dictionary/lm.pro.dictionary.cloud.server</module>
-		<module>/dictionary/lm.pro.dictionary.cloud.consumer</module>
-		<module>/dictionary/lm.pro.dictionary.web</module>
+		<!-- <module>/dictionary/lm.pro.dictionary.model</module> -->
+		<!-- <module>/dictionary/lm.pro.dictionary.service.impl</module> -->
+		<!-- <module>/dictionary/lm.pro.dictionary.cloud.server</module> -->
+		<!-- <module>/dictionary/lm.pro.dictionary.cloud.consumer</module> -->
+		<!-- <module>/dictionary/lm.pro.dictionary.web</module> -->
 
-		<module>/sns/lm.sns.tmodel</module>
-		<module>/sns/lm.sns.service.impl</module>
-		<module>/sns/lm.sns.cloud.server</module>
-		<module>/sns/lm.sns.cloud.consumer</module>
-		<module>/sns/lm.sns.web</module>
+		<!-- <module>/sns/lm.sns.tmodel</module> -->
+		<!-- <module>/sns/lm.sns.service.impl</module> -->
+		<!-- <module>/sns/lm.sns.cloud.server</module> -->
+		<!-- <module>/sns/lm.sns.cloud.consumer</module> -->
+		<!-- <module>/sns/lm.sns.web</module> -->
 
-		<module>/search/lm.search.cloud.server</module>
-		<module>/search/lm.search.cloud.consumer</module>
-		<module>/search/lm.search.web</module>
+		<!-- <module>/search/lm.search.cloud.server</module> -->
+		<!-- <module>/search/lm.search.cloud.consumer</module> -->
+		<!-- <module>/search/lm.search.web</module> -->
 
-		<module>/consumer/lm.cloud.kafka.consumer.server</module>
+		<!-- <module>/consumer/lm.cloud.kafka.consumer.server</module> -->
 
-		<module>/passport/lm.cas.web</module>
-		<module>/passport/lm.passport.web</module>
+		<!-- <module>/passport/lm.cas.web</module> -->
+		<!-- <module>/passport/lm.passport.web</module> -->
 
-		<module>/presentation/lm.mixplat.web</module>
-		<module>/presentation/lm.include.ui</module>
-		<module>/presentation/lm.res.com</module>
+		<!-- <module>/presentation/lm.mixplat.web</module> -->
+		<!-- <module>/presentation/lm.include.ui</module> -->
+		<!-- <module>/presentation/lm.res.com</module> -->
 		<!-- <module>/presentation/lm.static.com</module> -->
 	</modules>
 
@@ -583,21 +581,21 @@
 				</configuration>
 			</plugin>
 			<!-- 源码打包 -->
-			<!-- <plugin> -->
-			<!-- <artifactId>maven-source-plugin</artifactId> -->
-			<!-- <version>${maven-plugin.version}</version> -->
-			<!-- <configuration> -->
-			<!-- <attach>true</attach> -->
-			<!-- </configuration> -->
-			<!-- <executions> -->
-			<!-- <execution> -->
-			<!-- <phase>compile</phase> -->
-			<!-- <goals> -->
-			<!-- <goal>jar</goal> -->
-			<!-- </goals> -->
-			<!-- </execution> -->
-			<!-- </executions> -->
-			<!-- </plugin> -->
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-plugin.version}</version>
+				<configuration>
+					<attach>true</attach>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>

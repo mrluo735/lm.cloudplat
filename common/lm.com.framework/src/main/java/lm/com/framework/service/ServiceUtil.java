@@ -10,7 +10,9 @@
 package lm.com.framework.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import lm.com.framework.ObjectUtil;
@@ -27,6 +29,44 @@ import lm.com.framework.sqlmedium.SqlKey;
  */
 public class ServiceUtil {
 	/**
+	 * 重载+1 转成PagerMap
+	 * 
+	 * @param request
+	 * @return
+	 */
+	public static Map<String, Object> toPagerMap(RequestDTO request) {
+		return toPagerMap(request, null);
+	}
+
+	/**
+	 * 重载+2 转成PagerMap
+	 * 
+	 * @param request
+	 * @param driverName
+	 * @return
+	 */
+	public static Map<String, Object> toPagerMap(RequestDTO request, String driverName) {
+		Map<String, Object> pagerMap = new HashMap<String, Object>();
+		pagerMap.put(Pager.PAGEINDEX, request.getInteger(Pager.PAGEINDEX, 1));
+		pagerMap.put(Pager.PAGESIZE, request.getInteger(Pager.PAGESIZE, 20));
+		pagerMap.put(Pager.ORDERBY, ServiceUtil.toSort(request.getSorts(), driverName));
+		for (Entry<String, Object> item : request.getData().entrySet()) {
+			if (Pager.COLUMNPATTEN.equalsIgnoreCase(item.getKey().toString())
+					|| Pager.PAGEINDEX.equalsIgnoreCase(item.getKey().toString())
+					|| Pager.PAGESIZE.equalsIgnoreCase(item.getKey().toString())
+					|| Pager.ISSTATCOUNT.equalsIgnoreCase(item.getKey().toString()))
+				continue;
+			pagerMap.put(item.getKey().toString(), item.getValue());
+		}
+
+		if (request.containsKey(Pager.COLUMNPATTEN))
+			pagerMap.put(Pager.COLUMNPATTEN, request.getString(Pager.COLUMNPATTEN));
+		if (request.containsKey(Pager.ISSTATCOUNT))
+			pagerMap.put(Pager.ISSTATCOUNT, request.getBoolean(Pager.ISSTATCOUNT, true));
+		return pagerMap;
+	}
+
+	/**
 	 * 重载+1 转成Pager对象
 	 * 
 	 * @param request
@@ -40,8 +80,6 @@ public class ServiceUtil {
 	 * 重载+2 转成Pager对象
 	 * 
 	 * @param request
-	 * @param escapeColumn
-	 *            转义列名
 	 * @param driverName
 	 * @return
 	 */
@@ -50,7 +88,7 @@ public class ServiceUtil {
 		pager.setPageIndex(request.getInteger(Pager.PAGEINDEX, 1));
 		pager.setPageSize(request.getInteger(Pager.PAGESIZE, 20));
 		pager.setOrderBy(ServiceUtil.toSort(request.getSorts(), driverName));
-		for (Entry<Object, Object> item : request.getData().entrySet()) {
+		for (Entry<String, Object> item : request.getData().entrySet()) {
 			if (Pager.COLUMNPATTEN.equalsIgnoreCase(item.getKey().toString())
 					|| Pager.PAGEINDEX.equalsIgnoreCase(item.getKey().toString())
 					|| Pager.PAGESIZE.equalsIgnoreCase(item.getKey().toString())
