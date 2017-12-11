@@ -19,8 +19,40 @@ public interface IService {
 	/**
 	 * 执行
 	 * 
-	 * @param request
+	 * @param requestDTO
 	 * @return
 	 */
-	public ResponseDTO execute(RequestDTO request);
+	public ResponseDTO execute(RequestDTO requestDTO);
+
+	/**
+	 * GET请求执行
+	 * 
+	 * @param requestDTO
+	 * @return
+	 */
+	public ResponseDTO get(RequestDTO requestDTO);
+
+	/**
+	 * POST请求执行
+	 * 
+	 * @param requestDTO
+	 * @return
+	 */
+	public ResponseDTO post(RequestDTO requestDTO);
+
+	/**
+	 * PUT请求执行
+	 * 
+	 * @param requestDTO
+	 * @return
+	 */
+	public ResponseDTO put(RequestDTO requestDTO);
+
+	/**
+	 * DELETE请求执行
+	 * 
+	 * @param requestDTO
+	 * @return
+	 */
+	public ResponseDTO delete(RequestDTO requestDTO);
 }

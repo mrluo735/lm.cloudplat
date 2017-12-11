@@ -13,6 +13,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.HttpMethod;
+
 import lm.com.framework.EnumUtil;
 import lm.com.framework.ObjectUtil;
 import lm.com.framework.StringUtil;
@@ -41,7 +43,9 @@ public class RequestDTO implements Serializable {
 	@SuppressWarnings("rawtypes")
 	private IdentityDTO identity = new IdentityDTO();
 
-	private String method;
+	private String url;
+
+	private HttpMethod httpMethod = HttpMethod.GET;
 
 	private String locale = "zh_CN";
 
@@ -57,18 +61,18 @@ public class RequestDTO implements Serializable {
 	 * @param method
 	 * @param context
 	 */
-	public RequestDTO(String method) {
-		this.method = method;
+	public RequestDTO(String url) {
+		this.url = url;
 	}
 
 	/**
 	 * 重载+3 构造函数
 	 * 
-	 * @param method
-	 * @param context
+	 * @param url
+	 * @param identity
 	 */
-	public <T> RequestDTO(String method, IdentityDTO<T> identity) {
-		this.method = method;
+	public <T> RequestDTO(String url, IdentityDTO<T> identity) {
+		this.url = url;
 		this.identity = identity;
 	}
 
@@ -193,21 +197,42 @@ public class RequestDTO implements Serializable {
 	}
 
 	/**
-	 * 获取方法
+	 * 获取URL
 	 * 
 	 * @return
 	 */
-	public String getMethod() {
-		return method;
+	public String getUrl() {
+		return url;
 	}
 
 	/**
-	 * 设置方法
+	 * 设置URL
 	 * 
-	 * @param method
+	 * @param url
 	 */
-	public void setMethod(String method) {
-		this.method = method;
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	/**
+	 * 获取HttpMethod
+	 * 
+	 * @return
+	 */
+	public HttpMethod getHttpMethod() {
+		return httpMethod;
+	}
+
+	/**
+	 * 设置HttpMethod
+	 * 
+	 * @param httpMethod
+	 */
+	public void setHttpMethod(HttpMethod httpMethod) {
+		if (httpMethod != HttpMethod.GET || httpMethod != HttpMethod.POST || httpMethod != HttpMethod.PUT
+				|| httpMethod != HttpMethod.DELETE)
+			throw new RuntimeException("只支持Get, Post, Put, Delete方式的请求!");
+		this.httpMethod = httpMethod;
 	}
 
 	/**
