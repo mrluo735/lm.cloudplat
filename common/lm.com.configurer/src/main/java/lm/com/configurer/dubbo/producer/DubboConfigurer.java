@@ -275,29 +275,6 @@ public class DubboConfigurer {
 	/**
 	 * 与&lt;dubbo:protocol/>相当
 	 * <p>
-	 * dubbo协议，netty传输，kryo序列化
-	 * </p>
-	 *
-	 * @return
-	 */
-	// @Bean
-	public ProtocolConfig protocolDNK() {
-		ProtocolConfig protocolConfig = new ProtocolConfig();
-		protocolConfig.setId(this.dubboProtocolDubboNettyKryoId);
-		protocolConfig.setName(this.dubboProtocolDubboNettyKryoName);
-		protocolConfig.setServer(this.dubboProtocolDubboNettyKryoServer);
-		protocolConfig.setSerialization(this.dubboProtocolDubboNettyKryoSerialization);
-		protocolConfig.setHost(this.dubboProtocolDubboNettyKryoHost);
-		protocolConfig.setPort(this.dubboProtocolDubboNettyKryoPort);
-		protocolConfig.setHeartbeat(this.dubboProtocolDubboNettyKryoHeartbeat);
-		protocolConfig.setThreadpool(this.dubboProtocolDubboNettyKryoThreadpool);
-		protocolConfig.setThreads(this.dubboProtocolDubboNettyKryoThreads);
-		return protocolConfig;
-	}
-
-	/**
-	 * 与&lt;dubbo:protocol/>相当
-	 * <p>
 	 * rmi协议，netty传输，hessian2序列化
 	 * </p>
 	 *
@@ -315,6 +292,29 @@ public class DubboConfigurer {
 		protocolConfig.setHeartbeat(this.dubboProtocolRmiNettyHessian2Heartbeat);
 		protocolConfig.setThreadpool(this.dubboProtocolRmiNettyHessian2Threadpool);
 		protocolConfig.setThreads(this.dubboProtocolRmiNettyHessian2Threads);
+		return protocolConfig;
+	}
+
+	/**
+	 * 与&lt;dubbo:protocol/>相当
+	 * <p>
+	 * dubbo协议，netty传输，kryo序列化
+	 * </p>
+	 *
+	 * @return
+	 */
+	// @Bean
+	public ProtocolConfig protocolDNK() {
+		ProtocolConfig protocolConfig = new ProtocolConfig();
+		protocolConfig.setId(this.dubboProtocolDubboNettyKryoId);
+		protocolConfig.setName(this.dubboProtocolDubboNettyKryoName);
+		protocolConfig.setServer(this.dubboProtocolDubboNettyKryoServer);
+		protocolConfig.setSerialization(this.dubboProtocolDubboNettyKryoSerialization);
+		protocolConfig.setHost(this.dubboProtocolDubboNettyKryoHost);
+		protocolConfig.setPort(this.dubboProtocolDubboNettyKryoPort);
+		protocolConfig.setHeartbeat(this.dubboProtocolDubboNettyKryoHeartbeat);
+		protocolConfig.setThreadpool(this.dubboProtocolDubboNettyKryoThreadpool);
+		protocolConfig.setThreads(this.dubboProtocolDubboNettyKryoThreads);
 		return protocolConfig;
 	}
 

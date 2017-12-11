@@ -9,10 +9,14 @@
  */
 package lm.com.framework.service;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -20,13 +24,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import lm.com.framework.IntegerUtil;
 import lm.com.framework.JsonUtil;
 import lm.com.framework.ReflectUtil;
+import lm.com.framework.StringUtil;
 import lm.com.framework.ThreadUtil;
 import lm.com.framework.http.EnumHttpStatus;
+import lm.com.framework.webmvc.SpringApplicationContext;
 
 /**
  * 所有服务接口抽象实现类
@@ -39,12 +58,148 @@ public abstract class BaseServiceImpl implements IService {
 	 * 日志
 	 */
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
+	private static final ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+	/**
+	 * 
+	 */
+	protected Map<String[], String[]> CLS_METHOD_MAP = new HashMap<String[], String[]>();
 
 	@Autowired
 	private DataSource dataSource;
-
 	@Autowired
 	protected MessageSource messageSource;
+
+	/**
+	 * 重载+1 获取服务
+	 * 
+	 * @return
+	 */
+	@Deprecated
+	public BaseServiceImpl getService() {
+		try {
+			return getClass().newInstance();
+		} catch (InstantiationException e) {
+		} catch (IllegalAccessException e) {
+		}
+		return null;
+	}
+
+	/**
+	 * 初始化
+	 * 
+	 * @param method
+	 * @return
+	 */
+	protected void initClsMethod(String... locationPattern) {
+		if (locationPattern == null)
+			return;
+
+		for (String location : locationPattern) {
+			this.parseClsMethod(location);
+		}
+	}
+
+	/**
+	 * 初始化
+	 * 
+	 * @param method
+	 * @return
+	 */
+	private void parseClsMethod(String locationPattern) {
+		try {
+			Resource[] resources = resourcePatternResolver.getResources(locationPattern);
+			MetadataReaderFactory readerFactory = new CachingMetadataReaderFactory(resourcePatternResolver);
+			for (Resource resource : resources) {
+				if (!resource.isReadable())
+					continue;
+
+				MetadataReader reader = readerFactory.getMetadataReader(resource);
+				String className = reader.getClassMetadata().getClassName();
+				Annotation[] annotationArray = resource.getClass().getAnnotations();
+				if (annotationArray == null)
+					continue;
+
+				// 获取类的RequestMapping的value值
+				String clsUrl = "";
+				for (Annotation annotation : annotationArray) {
+					if (annotation.annotationType().equals(RequestMapping.class)) {
+						Method valueMethod = annotation.annotationType().getMethod("value");
+						String[] valueArray = (String[]) valueMethod.invoke(annotation);
+						clsUrl = valueArray == null ? "" : valueArray[0];
+						break;
+					}
+				}
+				Method[] methodArray = ReflectUtil.getDeclaredMethods(className);
+				if (methodArray == null)
+					continue;
+				for (Method method : methodArray) {
+					Annotation[] methodAnnoArray = method.getAnnotations();
+					if (methodAnnoArray == null)
+						continue;
+
+					String methodUrl = "";
+					String httpMethod = HttpMethod.GET.name();
+					for (Annotation annotation : methodAnnoArray) {
+						if (annotation.annotationType().equals(RequestMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							Method mthMethod = annotation.annotationType().getMethod("method");
+							RequestMethod[] requestMethodArray = (RequestMethod[]) mthMethod.invoke(annotation);
+							if (requestMethodArray == null || requestMethodArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = requestMethodArray[0].name();
+							break;
+						} else if (annotation.annotationType().equals(GetMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = HttpMethod.GET.name();
+						} else if (annotation.annotationType().equals(PostMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = HttpMethod.POST.name();
+						} else if (annotation.annotationType().equals(PutMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = HttpMethod.PUT.name();
+						} else if (annotation.annotationType().equals(DeleteMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = HttpMethod.DELETE.name();
+						}
+
+						if (StringUtil.isNullOrWhiteSpace(methodUrl))
+							continue;
+
+						String[] mKey = new String[] { clsUrl + methodUrl, httpMethod };
+						String[] mValue = new String[] { className, method.getName() };
+						CLS_METHOD_MAP.put(mKey, mValue);
+					}
+				}
+			}
+		} catch (Exception e) {
+		}
+	}
 
 	/**
 	 * 获取数据库驱动名称
@@ -72,31 +227,79 @@ public abstract class BaseServiceImpl implements IService {
 	/**
 	 * 执行
 	 * 
-	 * @param request
+	 * @param requestDTO
 	 * @return
 	 * @throws Exception
 	 */
-	public ResponseDTO execute(RequestDTO request) {
-		ResponseDTO resultDTO = new ResponseDTO();
+	public ResponseDTO execute(RequestDTO requestDTO) {
+		ResponseDTO responseDTO = new ResponseDTO();
 		long nanoTime = System.nanoTime();
-		String contextJson = "", paramJson = "";
+		String clsName = "", identityJson = "", paramJson = "";
 		try {
-			if (null != request.getIdentity())
-				contextJson = JsonUtil.toJsonUseJackson(request.getIdentity());
-			paramJson = JsonUtil.toJsonUseJackson(request);
+			if (null != requestDTO.getIdentity())
+				identityJson = JsonUtil.toJsonUseJackson(requestDTO.getIdentity());
+			paramJson = JsonUtil.toJsonUseJackson(requestDTO);
 
-			return (ResponseDTO) ReflectUtil.invokeMethod(getService(), request.getMethod(), request);
+			String[] mKey = new String[] { requestDTO.getUrl(), requestDTO.getHttpMethod().name() };
+			String[] mValue = CLS_METHOD_MAP.get(mKey);
+			Object bean = SpringApplicationContext.getBean(mValue[0]);
+			clsName = bean.toString();
+			return (ResponseDTO) ReflectUtil.invokeMethod(bean, mValue[1], requestDTO);
 		} catch (Exception ex) {
 			logger.error("执行出错，错误原因={}", ex);
-			resultDTO.setSuccess(false);
-			resultDTO.setCode(ex.hashCode());
-			resultDTO.setMessage(ex.getMessage());
+			responseDTO.setSuccess(false);
+			responseDTO.setCode(ex.hashCode());
+			responseDTO.setMessage(ex.getMessage());
 		} finally {
-			logger.info("------- 完成请求: Method={}, 花费时间(毫秒)={}, 登录信息={}, 参数={}--------",
-					new Object[] { getService().getClass().getSimpleName() + "." + request.getMethod(),
-							(System.nanoTime() - nanoTime) / 1000000, contextJson, paramJson });
+			logger.info("------- 完成请求: Url={}, 花费时间(毫秒)={}, 身份信息={}, 参数={}--------",
+					new Object[] { clsName + "." + requestDTO.getUrl(), (System.nanoTime() - nanoTime) / 1000000,
+							identityJson, paramJson });
 		}
-		return resultDTO;
+		return responseDTO;
+	}
+
+	/**
+	 * GET请求执行
+	 * 
+	 * @param requestDTO
+	 * @return
+	 */
+	public ResponseDTO get(RequestDTO requestDTO) {
+		requestDTO.setHttpMethod(HttpMethod.GET);
+		return this.execute(requestDTO);
+	}
+
+	/**
+	 * POST请求执行
+	 * 
+	 * @param requestDTO
+	 * @return
+	 */
+	public ResponseDTO post(RequestDTO requestDTO) {
+		requestDTO.setHttpMethod(HttpMethod.POST);
+		return this.execute(requestDTO);
+	}
+
+	/**
+	 * PUT请求执行
+	 * 
+	 * @param requestDTO
+	 * @return
+	 */
+	public ResponseDTO put(RequestDTO requestDTO) {
+		requestDTO.setHttpMethod(HttpMethod.PUT);
+		return this.execute(requestDTO);
+	}
+
+	/**
+	 * DELETE请求执行
+	 * 
+	 * @param requestDTO
+	 * @return
+	 */
+	public ResponseDTO delete(RequestDTO requestDTO) {
+		requestDTO.setHttpMethod(HttpMethod.DELETE);
+		return this.execute(requestDTO);
 	}
 
 	/**
@@ -186,30 +389,5 @@ public abstract class BaseServiceImpl implements IService {
 		result.setMessage(
 				messageSource.getMessage(String.valueOf(HttpStatus.EXPECTATION_FAILED.value()), null, locale));
 		return result;
-	}
-
-	/**
-	 * 重载+1 获取服务
-	 * 
-	 * @return
-	 */
-	@Deprecated
-	public BaseServiceImpl getService() {
-		try {
-			return getClass().newInstance();
-		} catch (InstantiationException e) {
-		} catch (IllegalAccessException e) {
-		}
-		return null;
-	}
-
-	/**
-	 * 重载+2 获取服务
-	 * 
-	 * @param method
-	 * @return
-	 */
-	public String getService(String method) {
-		throw new RuntimeException("调用前子类必须实现此方法!");
 	}
 }

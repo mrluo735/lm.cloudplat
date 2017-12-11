@@ -296,7 +296,7 @@ public final class ReflectUtil {
 	 * @param className
 	 * @return
 	 */
-	public static Method[] findDeclaredMethods(String className) {
+	public static Method[] getDeclaredMethods(String className) {
 		Class<?> clazz;
 		try {
 			clazz = Class.forName(className);
@@ -312,7 +312,7 @@ public final class ReflectUtil {
 	 * @param clazz
 	 * @return
 	 */
-	public static Method[] findDeclaredMethods(Class<?> clazz) {
+	public static Method[] getDeclaredMethods(Class<?> clazz) {
 		return clazz.getDeclaredMethods();
 	}
 
@@ -323,7 +323,7 @@ public final class ReflectUtil {
 	 * name of the method param paramTypes the parameter types of the method (may be <code>null</code> to indicate any
 	 * signature) return the Method object, or <code>null</code> if none found
 	 */
-	public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
+	public static Method getMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
 		Class<?> searchType = clazz;
 		while (searchType != null) {
 			Method[] methods = (searchType.isInterface() ? searchType.getMethods() : searchType.getDeclaredMethods());
@@ -354,7 +354,7 @@ public final class ReflectUtil {
 			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Class<?> clazz = object.getClass();
 		final Class<?>[] parameterTypes = ClassUtil.toClass(args);
-		Method method = findMethod(clazz, methodName, parameterTypes);
+		Method method = getMethod(clazz, methodName, parameterTypes);
 		if (method == null) {
 			throw new NoSuchMethodException(
 					"No such accessible method: " + methodName + "() on object: " + clazz.getName());
