@@ -20,6 +20,19 @@ package lm.com.configurer;
  */
 public class ConfigurerConstant {
 	/**
+	 * id生成器
+	 * 
+	 * @author mrluo735
+	 *
+	 */
+	public static class Id {
+		/**
+		 * Snowflake Id
+		 */
+		public static final String SNOWFLAKE = "lm.com.configurer.id.snowflake";
+	}
+
+	/**
 	 * 引导组件
 	 * 
 	 * @ClassName: Bootstrap

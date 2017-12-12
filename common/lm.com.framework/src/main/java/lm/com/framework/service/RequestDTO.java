@@ -229,8 +229,8 @@ public class RequestDTO implements Serializable {
 	 * @param httpMethod
 	 */
 	public void setHttpMethod(HttpMethod httpMethod) {
-		if (httpMethod != HttpMethod.GET || httpMethod != HttpMethod.POST || httpMethod != HttpMethod.PUT
-				|| httpMethod != HttpMethod.DELETE)
+		if (httpMethod != HttpMethod.GET && httpMethod != HttpMethod.POST && httpMethod != HttpMethod.PUT
+				&& httpMethod != HttpMethod.DELETE)
 			throw new RuntimeException("只支持Get, Post, Put, Delete方式的请求!");
 		this.httpMethod = httpMethod;
 	}

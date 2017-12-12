@@ -287,7 +287,7 @@ public class CaptchaHelper {
 	 * @return
 	 * @throws IOException
 	 */
-	public String outputVerifyImage(File outputFile) throws IOException {
+	public String outputImage(File outputFile) throws IOException {
 		String verifyCode = this.getVerifyCode(this.length);
 		this.outputImage(verifyCode, outputFile);
 		return verifyCode;
@@ -300,7 +300,7 @@ public class CaptchaHelper {
 	 * @return
 	 * @throws IOException
 	 */
-	public String outputVerifyImage(OutputStream os) throws IOException {
+	public String outputImage(OutputStream os) throws IOException {
 		String verifyCode = this.getVerifyCode(this.length);
 		this.outputImage(this.width, this.height, verifyCode, os);
 		return verifyCode;

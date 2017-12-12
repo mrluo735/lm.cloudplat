@@ -9,7 +9,6 @@
  */
 package lm.com.framework.service;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -33,6 +32,7 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,11 +59,11 @@ public abstract class BaseServiceImpl implements IService {
 	 * 日志
 	 */
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
-	private static final ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+	private static final ResourcePatternResolver RESOURCE_PATTERNRE_SOLVER = new PathMatchingResourcePatternResolver();
 	/**
 	 * 
 	 */
-	protected Map<String[], String[]> CLS_METHOD_MAP = new HashMap<String[], String[]>();
+	private static Map<String, String[]> URL_METHOD_MAP = new HashMap<String, String[]>();
 
 	@Autowired
 	private DataSource dataSource;
@@ -91,114 +91,12 @@ public abstract class BaseServiceImpl implements IService {
 	 * @param method
 	 * @return
 	 */
-	protected void initClsMethod(String... locationPattern) {
+	protected void scanUrlMapping(String... locationPattern) {
 		if (locationPattern == null)
 			return;
 
 		for (String location : locationPattern) {
-			this.parseClsMethod(location);
-		}
-	}
-
-	/**
-	 * 初始化
-	 * 
-	 * @param method
-	 * @return
-	 */
-	private void parseClsMethod(String locationPattern) {
-		try {
-			Resource[] resources = resourcePatternResolver.getResources(locationPattern);
-			MetadataReaderFactory readerFactory = new CachingMetadataReaderFactory(resourcePatternResolver);
-			for (Resource resource : resources) {
-				if (!resource.isReadable())
-					continue;
-
-				MetadataReader reader = readerFactory.getMetadataReader(resource);
-				String className = reader.getClassMetadata().getClassName();
-				Annotation[] annotationArray = resource.getClass().getAnnotations();
-				if (annotationArray == null)
-					continue;
-
-				// 获取类的RequestMapping的value值
-				String clsUrl = "";
-				for (Annotation annotation : annotationArray) {
-					if (annotation.annotationType().equals(RequestMapping.class)) {
-						Method valueMethod = annotation.annotationType().getMethod("value");
-						String[] valueArray = (String[]) valueMethod.invoke(annotation);
-						clsUrl = valueArray == null ? "" : valueArray[0];
-						break;
-					}
-				}
-				Method[] methodArray = ReflectUtil.getDeclaredMethods(className);
-				if (methodArray == null)
-					continue;
-				for (Method method : methodArray) {
-					Annotation[] methodAnnoArray = method.getAnnotations();
-					if (methodAnnoArray == null)
-						continue;
-
-					String methodUrl = "";
-					String httpMethod = HttpMethod.GET.name();
-					for (Annotation annotation : methodAnnoArray) {
-						if (annotation.annotationType().equals(RequestMapping.class)) {
-							Method valueMethod = annotation.annotationType().getMethod("value");
-							String[] valueArray = (String[]) valueMethod.invoke(annotation);
-							if (valueArray == null || valueArray.length < 1)
-								continue;
-
-							Method mthMethod = annotation.annotationType().getMethod("method");
-							RequestMethod[] requestMethodArray = (RequestMethod[]) mthMethod.invoke(annotation);
-							if (requestMethodArray == null || requestMethodArray.length < 1)
-								continue;
-
-							methodUrl = valueArray[0];
-							httpMethod = requestMethodArray[0].name();
-							break;
-						} else if (annotation.annotationType().equals(GetMapping.class)) {
-							Method valueMethod = annotation.annotationType().getMethod("value");
-							String[] valueArray = (String[]) valueMethod.invoke(annotation);
-							if (valueArray == null || valueArray.length < 1)
-								continue;
-
-							methodUrl = valueArray[0];
-							httpMethod = HttpMethod.GET.name();
-						} else if (annotation.annotationType().equals(PostMapping.class)) {
-							Method valueMethod = annotation.annotationType().getMethod("value");
-							String[] valueArray = (String[]) valueMethod.invoke(annotation);
-							if (valueArray == null || valueArray.length < 1)
-								continue;
-
-							methodUrl = valueArray[0];
-							httpMethod = HttpMethod.POST.name();
-						} else if (annotation.annotationType().equals(PutMapping.class)) {
-							Method valueMethod = annotation.annotationType().getMethod("value");
-							String[] valueArray = (String[]) valueMethod.invoke(annotation);
-							if (valueArray == null || valueArray.length < 1)
-								continue;
-
-							methodUrl = valueArray[0];
-							httpMethod = HttpMethod.PUT.name();
-						} else if (annotation.annotationType().equals(DeleteMapping.class)) {
-							Method valueMethod = annotation.annotationType().getMethod("value");
-							String[] valueArray = (String[]) valueMethod.invoke(annotation);
-							if (valueArray == null || valueArray.length < 1)
-								continue;
-
-							methodUrl = valueArray[0];
-							httpMethod = HttpMethod.DELETE.name();
-						}
-
-						if (StringUtil.isNullOrWhiteSpace(methodUrl))
-							continue;
-
-						String[] mKey = new String[] { clsUrl + methodUrl, httpMethod };
-						String[] mValue = new String[] { className, method.getName() };
-						CLS_METHOD_MAP.put(mKey, mValue);
-					}
-				}
-			}
-		} catch (Exception e) {
+			this.parseMethodMapping(location.replaceAll("\\.", "/"));
 		}
 	}
 
@@ -241,11 +139,11 @@ public abstract class BaseServiceImpl implements IService {
 				identityJson = JsonUtil.toJsonUseJackson(requestDTO.getIdentity());
 			paramJson = JsonUtil.toJsonUseJackson(requestDTO);
 
-			String[] mKey = new String[] { requestDTO.getUrl(), requestDTO.getHttpMethod().name() };
-			String[] mValue = CLS_METHOD_MAP.get(mKey);
-			Object bean = SpringApplicationContext.getBean(mValue[0]);
-			clsName = bean.toString();
-			return (ResponseDTO) ReflectUtil.invokeMethod(bean, mValue[1], requestDTO);
+			String mKey = String.format("%s$$%s", requestDTO.getUrl(), requestDTO.getHttpMethod().name());
+			String[] mValue = URL_METHOD_MAP.get(mKey);
+			Object bean = SpringApplicationContext.getBean(mValue[1]);
+			clsName = mValue[2];
+			return (ResponseDTO) ReflectUtil.invokeMethod(bean, mValue[0], requestDTO);
 		} catch (Exception ex) {
 			logger.error("执行出错，错误原因={}", ex);
 			responseDTO.setSuccess(false);
@@ -391,4 +289,117 @@ public abstract class BaseServiceImpl implements IService {
 				messageSource.getMessage(String.valueOf(HttpStatus.EXPECTATION_FAILED.value()), null, locale));
 		return result;
 	}
+
+	// region 解析方法映射
+	/**
+	 * 解析方法映射
+	 * 
+	 * @param locationPattern
+	 * @return
+	 */
+	private void parseMethodMapping(String locationPattern) {
+		try {
+			Resource[] resources = RESOURCE_PATTERNRE_SOLVER.getResources(locationPattern);
+			MetadataReaderFactory readerFactory = new CachingMetadataReaderFactory(RESOURCE_PATTERNRE_SOLVER);
+			for (Resource resource : resources) {
+				if (!resource.isReadable())
+					continue;
+
+				MetadataReader reader = readerFactory.getMetadataReader(resource);
+				String className = reader.getClassMetadata().getClassName();
+				Class<?> clazz = Class.forName(className);
+				Annotation[] annotationArray = clazz.getAnnotations();
+				if (annotationArray == null || annotationArray.length < 1)
+					continue;
+
+				// 获取类的RequestMapping的value值
+				String clsUrl = "";
+				String beanName = "";
+				for (Annotation annotation : annotationArray) {
+					if (annotation.annotationType().equals(Service.class)) {
+						Method valueMethod = annotation.annotationType().getMethod("value");
+						Object valueObj = valueMethod.invoke(annotation);
+						beanName = valueObj == null ? "" : valueObj.toString();
+					} else if (annotation.annotationType().equals(RequestMapping.class)) {
+						Method valueMethod = annotation.annotationType().getMethod("value");
+						String[] valueArray = (String[]) valueMethod.invoke(annotation);
+						clsUrl = valueArray == null ? "" : valueArray[0];
+					}
+				}
+				Method[] methodArray = ReflectUtil.getDeclaredMethods(className);
+				if (methodArray == null || methodArray.length < 1)
+					continue;
+				for (Method method : methodArray) {
+					Annotation[] methodAnnoArray = method.getAnnotations();
+					if (methodAnnoArray == null || methodAnnoArray.length < 1)
+						continue;
+
+					String methodUrl = "";
+					String httpMethod = HttpMethod.GET.name();
+					for (Annotation annotation : methodAnnoArray) {
+						if (annotation.annotationType().equals(RequestMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							Method mthMethod = annotation.annotationType().getMethod("method");
+							RequestMethod[] requestMethodArray = (RequestMethod[]) mthMethod.invoke(annotation);
+							if (requestMethodArray == null || requestMethodArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = requestMethodArray[0].name();
+							break;
+						} else if (annotation.annotationType().equals(GetMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = HttpMethod.GET.name();
+						} else if (annotation.annotationType().equals(PostMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = HttpMethod.POST.name();
+						} else if (annotation.annotationType().equals(PutMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = HttpMethod.PUT.name();
+						} else if (annotation.annotationType().equals(DeleteMapping.class)) {
+							Method valueMethod = annotation.annotationType().getMethod("value");
+							String[] valueArray = (String[]) valueMethod.invoke(annotation);
+							if (valueArray == null || valueArray.length < 1)
+								continue;
+
+							methodUrl = valueArray[0];
+							httpMethod = HttpMethod.DELETE.name();
+						}
+
+						if (StringUtil.isNullOrWhiteSpace(methodUrl))
+							continue;
+
+						if (StringUtil.isNullOrWhiteSpace(beanName))
+							beanName = StringUtil.uncapitalize(clazz.getSimpleName());
+
+						String mKey = String.format("%s%s$$%s", clsUrl, methodUrl, httpMethod);
+						String[] mValue = new String[] { method.getName(), beanName, className };
+						URL_METHOD_MAP.put(mKey, mValue);
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("解析方法映射出错！%s", e.getMessage());
+		}
+	}
+	// endregion
 }
