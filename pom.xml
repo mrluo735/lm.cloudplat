@@ -14,7 +14,6 @@
 	<modules>
 		<module>/common/lm.com.framework</module>
 		<module>/common/lm.com.configurer</module>
-		<!-- <module>/common/lm.com.kafka</module> -->
 
 		<module>/common.cloud/lm.cloud.eureka.server</module>
 		<module>/common.cloud/lm.cloud.config.server</module>
@@ -154,29 +153,23 @@
 
 		<jsqlparser.version>0.9.6</jsqlparser.version>
 
-		<!-- kaptcha版本 -->
-		<kaptcha.version>0.0.9</kaptcha.version>
-		<!-- zxing版本 -->
-		<zxing.version>3.3.0</zxing.version>
-		<!-- poi版本 -->
-		<poi.version>3.15</poi.version>
-		<!-- itextpdf版本 -->
-		<itextpdf.version>5.5.8</itextpdf.version>
-
-		<!-- jedis版本 -->
-		<jedis.version>2.9.0</jedis.version>
-
-		<!-- mongo-java-driver版本 -->
-		<mongo-java-driver.version>3.3.0</mongo-java-driver.version>
-
 		<!-- zookeeper版本 -->
 		<zookeeper.version>3.4.10</zookeeper.version>
 		<zkclient.version>0.10</zkclient.version>
 		<lm-zkclient.version>1.0</lm-zkclient.version>
 
+		<!-- jedis版本 -->
+		<jedis.version>2.9.0</jedis.version>
+
+		<!-- ehcache版本 -->
+		<net-sf-ehcache.version>2.10.0</net-sf-ehcache.version>
+		<org-ehcache.version>3.1.0</org-ehcache.version>
+
+		<!-- mongo-java-driver版本 -->
+		<mongo-java-driver.version>3.3.0</mongo-java-driver.version>
+
 		<!-- jackson版本 -->
 		<jackson.version>2.8.6</jackson.version>
-
 		<!-- gson版本 -->
 		<gson.version>2.8.0</gson.version>
 		<!-- org.json版本 -->
@@ -192,24 +185,30 @@
 		<!-- tbschedule版本 -->
 		<alibaba-tbschedule.version>3.3.3.2</alibaba-tbschedule.version>
 
-		<hessian.version>4.0.7</hessian.version>
-
-		<!-- ehcache版本 -->
-		<net-sf-ehcache.version>2.10.0</net-sf-ehcache.version>
-		<org-ehcache.version>3.1.0</org-ehcache.version>
-
+		<!-- mq版本 -->
+		<activemq.version>5.14.2</activemq.version>
+		<amqp-client.version>3.6.0</amqp-client.version>
+		<!-- kafka版本 -->
+		<kafka.version>0.10.0.0</kafka.version>
+		
 		<!-- httpcore版本 -->
 		<httpcore.version>4.4.1</httpcore.version>
 		<!-- httpclient版本 -->
 		<httpclient.version>4.5</httpclient.version>
+		
+		<okhttp.version>3.5.0</okhttp.version>
+		<okio.version>1.11.0</okio.version>
 
 		<!-- jsoup版本 -->
 		<jsoup.version>1.10.3</jsoup.version>
 
-		<!-- mq版本 -->
-		<activemq-client.version>5.13.0</activemq-client.version>
-		<amqp-client.version>3.6.0</amqp-client.version>
+		<!-- elastic search版本 -->
+		<elasticsearch.version>5.1.1</elasticsearch.version>
+		
+		<hessian.version>4.0.7</hessian.version>
 
+		<resteasy.version>3.1.3.Final</resteasy.version>
+		
 		<!-- quartz版本 -->
 		<quartz.version>2.2.1</quartz.version>
 
@@ -222,44 +221,42 @@
 		<!-- beetl版本 -->
 		<beetl.version>2.7.3</beetl.version>
 
-		<resteasy.version>3.1.3.Final</resteasy.version>
-
-		<!-- elastic search版本 -->
-		<elasticsearch.version>5.1.1</elasticsearch.version>
-
 		<swagger2.version>2.6.1</swagger2.version>
+		
+		<!-- cas版本 -->
+		<cas-client-core.version>3.3.3</cas-client-core.version>
 
-		<!-- baidu开源组件 -->
-		<disconf.version>2.6.36</disconf.version>
-
+		<!-- wurfl版本 -->
+		<wurfl.version>1.8.1.0</wurfl.version>
+		
 		<!-- sitemesh -->
 		<sitemesh.version>3.0.1</sitemesh.version>
 
-		<!-- elasticsearch版本 -->
-		<elasticsearch.version>5.1.1</elasticsearch.version>
+		<!-- baidu开源组件 -->
+		<disconf.version>2.6.36</disconf.version>
 
 		<!-- socketio版本 -->
 		<netty-socketio.version>1.7.12</netty-socketio.version>
 		<socketio-client.version>0.8.3</socketio-client.version>
 
-		<okhttp.version>3.5.0</okhttp.version>
-		<okio.version>1.11.0</okio.version>
-
-		<!-- kafka版本 -->
-		<kafka.version>0.10.0.0</kafka.version>
-		<!-- spark版本 -->
-		<spark.version>1.3.0</spark.version>
-		<!-- cas版本 -->
-		<cas-client-core.version>3.3.3</cas-client-core.version>
-
-		<!-- thumbnailator版本 -->
-		<thumbnailator.version>0.4.8</thumbnailator.version>
 		<!-- qiniu版本 -->
 		<qiniu-sdk.version>7.2.2</qiniu-sdk.version>
 		<!-- fastdfs-client版本 -->
 		<fastdfs-client-java.version>1.27-SNAPSHOT</fastdfs-client-java.version>
-		<!-- wurfl版本 -->
-		<wurfl.version>1.8.1.0</wurfl.version>
+		
+		<!-- spark版本 -->
+		<spark.version>1.3.0</spark.version>
+		
+		<!-- kaptcha版本 -->
+		<kaptcha.version>0.0.9</kaptcha.version>
+		<!-- zxing版本 -->
+		<zxing.version>3.3.0</zxing.version>
+		<!-- poi版本 -->
+		<poi.version>3.15</poi.version>
+		<!-- itextpdf版本 -->
+		<itextpdf.version>5.5.8</itextpdf.version>
+		<!-- thumbnailator版本 -->
+		<thumbnailator.version>0.4.8</thumbnailator.version>
 		<!-- pingyin版本 -->
 		<pinyin4j.version>2.5.1</pinyin4j.version>
 		<!-- itextpdf版本 -->

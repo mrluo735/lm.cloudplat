@@ -96,7 +96,7 @@ public abstract class BaseServiceImpl implements IService {
 			return;
 
 		for (String location : locationPattern) {
-			this.parseMethodMapping(location.replaceAll("\\.", "/"));
+			this.parseMethodMapping(location.replaceAll("\\.", "/") + "/*.class");
 		}
 	}
 
@@ -133,7 +133,7 @@ public abstract class BaseServiceImpl implements IService {
 	public ResponseDTO execute(RequestDTO requestDTO) {
 		ResponseDTO responseDTO = new ResponseDTO();
 		long nanoTime = System.nanoTime();
-		String clsName = "", identityJson = "", paramJson = "";
+		String methodName = "", identityJson = "", paramJson = "";
 		try {
 			if (null != requestDTO.getIdentity())
 				identityJson = JsonUtil.toJsonUseJackson(requestDTO.getIdentity());
@@ -142,7 +142,7 @@ public abstract class BaseServiceImpl implements IService {
 			String mKey = String.format("%s$$%s", requestDTO.getUrl(), requestDTO.getHttpMethod().name());
 			String[] mValue = URL_METHOD_MAP.get(mKey);
 			Object bean = SpringApplicationContext.getBean(mValue[1]);
-			clsName = mValue[2];
+			methodName = String.format("%s.%s", mValue[2], mValue[0]);
 			return (ResponseDTO) ReflectUtil.invokeMethod(bean, mValue[0], requestDTO);
 		} catch (Exception ex) {
 			logger.error("执行出错，错误原因={}", ex);
@@ -150,8 +150,8 @@ public abstract class BaseServiceImpl implements IService {
 			responseDTO.setCode(ex.hashCode());
 			responseDTO.setMessage(ex.getMessage());
 		} finally {
-			logger.info("------- 完成请求: Url={}, 花费时间(毫秒)={}, 身份信息={}, 参数={}--------",
-					new Object[] { clsName + "." + requestDTO.getUrl(), (System.nanoTime() - nanoTime) / 1000000,
+			logger.info("------- 完成请求: Url={}, 执行方法={}, 花费时间(毫秒)={}, 身份信息={}, 参数={}--------",
+					new Object[] { requestDTO.getUrl(), methodName, (System.nanoTime() - nanoTime) / 1000000,
 							identityJson, paramJson });
 		}
 		return responseDTO;
