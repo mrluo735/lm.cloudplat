@@ -172,11 +172,10 @@
 			<artifactId>jsoup</artifactId>
 			<version>${jsoup.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-all</artifactId>
-			<version>${activemq.version}</version>
+			<artifactId>activemq-web</artifactId>
 		</dependency>
 
 		<dependency>

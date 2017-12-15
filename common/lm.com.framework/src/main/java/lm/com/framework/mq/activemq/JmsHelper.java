@@ -1,18 +1,30 @@
 package lm.com.framework.mq.activemq;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.jms.BytesMessage;
 import javax.jms.JMSException;
-import javax.jms.Session;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
+import javax.jms.QueueBrowser;
+import javax.jms.StreamMessage;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQMessageConsumer;
 import org.apache.activemq.ActiveMQMessageProducer;
 import org.apache.activemq.ActiveMQSession;
 import org.apache.activemq.ActiveMQXAConnectionFactory;
 import org.apache.activemq.AsyncCallback;
-import org.apache.activemq.broker.region.Queue;
+import org.apache.activemq.BlobMessage;
 import org.apache.activemq.command.ActiveMQDestination;
+import org.apache.activemq.command.ActiveMQMapMessage;
 import org.apache.activemq.command.ActiveMQMessage;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTempQueue;
@@ -20,7 +32,8 @@ import org.apache.activemq.command.ActiveMQTempTopic;
 import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.activemq.jms.pool.PooledConnectionFactory;
 import org.apache.activemq.pool.XaPooledConnectionFactory;
-import org.apache.activemq.util.ByteSequence;
+
+import lm.com.framework.StreamUtil;
 
 /**
  * JmsHelper
@@ -47,6 +60,125 @@ public class JmsHelper {
 	private boolean blockIfSessionPoolIsFull = true;
 	private long blockIfSessionPoolIsFullTimeout = -1L;
 	private long expiryTimeout = 0l;
+
+	// region 属性
+	/**
+	 * 获取BrokerUrl
+	 * 
+	 * @return
+	 */
+	public String getBrokerUrl() {
+		return brokerUrl;
+	}
+
+	public void setBrokerUrl(String brokerUrl) {
+		this.brokerUrl = brokerUrl;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public boolean isXA() {
+		return isXA;
+	}
+
+	public void setXA(boolean isXA) {
+		this.isXA = isXA;
+	}
+
+	public int getXaAckMode() {
+		return xaAckMode;
+	}
+
+	public void setXaAckMode(int xaAckMode) {
+		this.xaAckMode = xaAckMode;
+	}
+
+	public boolean isUseCompression() {
+		return useCompression;
+	}
+
+	public void setUseCompression(boolean useCompression) {
+		this.useCompression = useCompression;
+	}
+
+	public int getMaxThreadPoolSize() {
+		return maxThreadPoolSize;
+	}
+
+	public void setMaxThreadPoolSize(int maxThreadPoolSize) {
+		this.maxThreadPoolSize = maxThreadPoolSize;
+	}
+
+	public boolean isEnablePooled() {
+		return enablePooled;
+	}
+
+	public void setEnablePooled(boolean enablePooled) {
+		this.enablePooled = enablePooled;
+	}
+
+	public int getMaxConnections() {
+		return maxConnections;
+	}
+
+	public void setMaxConnections(int maxConnections) {
+		this.maxConnections = maxConnections;
+	}
+
+	public int getMaximumActiveSessionPerConnection() {
+		return maximumActiveSessionPerConnection;
+	}
+
+	public void setMaximumActiveSessionPerConnection(int maximumActiveSessionPerConnection) {
+		this.maximumActiveSessionPerConnection = maximumActiveSessionPerConnection;
+	}
+
+	public int getIdleTimeout() {
+		return idleTimeout;
+	}
+
+	public void setIdleTimeout(int idleTimeout) {
+		this.idleTimeout = idleTimeout;
+	}
+
+	public boolean isBlockIfSessionPoolIsFull() {
+		return blockIfSessionPoolIsFull;
+	}
+
+	public void setBlockIfSessionPoolIsFull(boolean blockIfSessionPoolIsFull) {
+		this.blockIfSessionPoolIsFull = blockIfSessionPoolIsFull;
+	}
+
+	public long getBlockIfSessionPoolIsFullTimeout() {
+		return blockIfSessionPoolIsFullTimeout;
+	}
+
+	public void setBlockIfSessionPoolIsFullTimeout(long blockIfSessionPoolIsFullTimeout) {
+		this.blockIfSessionPoolIsFullTimeout = blockIfSessionPoolIsFullTimeout;
+	}
+
+	public long getExpiryTimeout() {
+		return expiryTimeout;
+	}
+
+	public void setExpiryTimeout(long expiryTimeout) {
+		this.expiryTimeout = expiryTimeout;
+	}
+	// endregion
 
 	/**
 	 * 构造函数
@@ -205,28 +337,71 @@ public class JmsHelper {
 	}
 
 	/**
-	 * 同步发送消息
+	 * 重载+1 同步发送消息
 	 * 
 	 * @param name
 	 * @param type
 	 * @param content
-	 * @param transacted
-	 * @param acknowledgeMode
-	 * @param deliveryMode
-	 * @param priority
-	 * @param timeToLive
 	 */
 	public void sendSync(String name, byte type, String content) {
 		try {
-			this.sendSync(name, type, content.getBytes("utf-8"), false, ActiveMQSession.AUTO_ACKNOWLEDGE, 0, 0, 0L);
+			this.send(name, type, content, false, ActiveMQSession.AUTO_ACKNOWLEDGE, 0, 0, 0L, null);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
 	}
 
 	/**
-	 * 同步发送消息
+	 * 重载+2 同步发送消息
 	 * 
+	 * @param name
+	 * @param type
+	 * @param content
+	 */
+	public void sendSync(String name, byte type, byte[] content) {
+		try {
+			this.send(name, type, content, false, ActiveMQSession.AUTO_ACKNOWLEDGE, 0, 0, 0L, null);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	/**
+	 * 重载+1 异步发送消息
+	 * 
+	 * @param name
+	 * @param type
+	 * @param content
+	 * @param onComplete
+	 */
+	public void sendAsync(String name, byte type, String content, AsyncCallback onComplete) {
+		try {
+			this.send(name, type, content, false, ActiveMQSession.AUTO_ACKNOWLEDGE, 0, 0, 0L, onComplete);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	/**
+	 * 重载+2 异步发送消息
+	 * 
+	 * @param name
+	 * @param type
+	 * @param content
+	 * @param onComplete
+	 */
+	public void sendAsync(String name, byte type, byte[] content, AsyncCallback onComplete) {
+		try {
+			this.send(name, type, content, false, ActiveMQSession.AUTO_ACKNOWLEDGE, 0, 0, 0L, onComplete);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	/**
+	 * 发送消息
+	 * 
+	 * @param <T>
 	 * @param name
 	 * @param type
 	 * @param content
@@ -235,9 +410,10 @@ public class JmsHelper {
 	 * @param deliveryMode
 	 * @param priority
 	 * @param timeToLive
+	 * @param onComplete
 	 */
-	public void sendSync(String name, byte type, byte[] content, boolean transacted, int acknowledgeMode,
-			int deliveryMode, int priority, long timeToLive) {
+	public <T> void send(String name, byte type, T content, boolean transacted, int acknowledgeMode, int deliveryMode,
+			int priority, long timeToLive, AsyncCallback onComplete) {
 		ActiveMQConnection connection = null;
 		ActiveMQSession session = null;
 		ActiveMQMessageProducer producer = null;
@@ -255,9 +431,34 @@ public class JmsHelper {
 			else
 				return;
 
-			ActiveMQMessage message = new ActiveMQMessage();
-			message.setContent(new ByteSequence(content));
-			producer.send(message, deliveryMode, priority, timeToLive);
+			Message message = null;
+			if (content instanceof byte[]) { // CommandTypes.ACTIVEMQ_BYTES_MESSAGE
+				BytesMessage bytesMessage = session.createBytesMessage();
+				bytesMessage.writeBytes((byte[]) content);
+				message = bytesMessage;
+			} else if (content instanceof Map) { // CommandTypes.ACTIVEMQ_MAP_MESSAGE
+				ActiveMQMapMessage mapMessage = (ActiveMQMapMessage) session.createMapMessage();
+				mapMessage.getContentMap().putAll((Map<String, Object>) content);
+				message = mapMessage;
+			} else if (content instanceof Serializable) { // CommandTypes.ACTIVEMQ_OBJECT_MESSAGE
+				ObjectMessage objectMessage = session.createObjectMessage((Serializable) content);
+				message = objectMessage;
+			} else if (content instanceof InputStream) { // CommandTypes.ACTIVEMQ_STREAM_MESSAGE
+				StreamMessage streamMessage = session.createStreamMessage();
+				streamMessage.writeBytes(StreamUtil.inputStream2Bytes((InputStream) content));
+				message = streamMessage;
+			} else if (content instanceof String) {
+				TextMessage textMessage = session.createTextMessage((String) content);
+				message = textMessage;
+			} else if (content instanceof InputStream) { // CommandTypes.ACTIVEMQ_BLOB_MESSAGE
+				BlobMessage blobMessage = session.createBlobMessage((InputStream) content);
+				message = blobMessage;
+			} else
+				return;
+			if (onComplete == null)
+				producer.send(message, deliveryMode, priority, timeToLive);
+			else
+				producer.send(message, onComplete);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		} finally {
@@ -278,43 +479,53 @@ public class JmsHelper {
 	}
 
 	/**
-	 * 异步发送消息
+	 * 重载+1 同步消费消息
 	 * 
 	 * @param name
 	 * @param type
-	 * @param content
+	 * @param contentType
 	 * @param transacted
 	 * @param acknowledgeMode
-	 * @param onComplete
 	 */
-	public void sendAsync(String name, byte type, byte[] content, boolean transacted, int acknowledgeMode,
-			AsyncCallback onComplete) {
+	public String consumeSync(String name, byte type) {
+		return this.consumeSync(name, type, String.class, false, ActiveMQSession.AUTO_ACKNOWLEDGE);
+	}
+
+	/**
+	 * 重载+2 同步消费消息
+	 * 
+	 * @param name
+	 * @param type
+	 * @param contentType
+	 * @param transacted
+	 * @param acknowledgeMode
+	 */
+	public <T> T consumeSync(String name, byte type, Class<T> contentType, boolean transacted, int acknowledgeMode) {
 		ActiveMQConnection connection = null;
 		ActiveMQSession session = null;
-		ActiveMQMessageProducer producer = null;
+		ActiveMQMessageConsumer consumer = null;
 		try {
 			connection = this.createConnection();
 			session = (ActiveMQSession) connection.createSession(transacted, acknowledgeMode);
 			if (type == ActiveMQDestination.QUEUE_TYPE)
-				producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQQueue(name));
+				consumer = (ActiveMQMessageConsumer) session.createConsumer(new ActiveMQQueue(name));
 			else if (type == ActiveMQDestination.TOPIC_TYPE)
-				producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQTopic(name));
+				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTopic(name));
 			else if (type == ActiveMQDestination.TEMP_QUEUE_TYPE)
-				producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQTempQueue(name));
+				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTempQueue(name));
 			else if (type == ActiveMQDestination.TEMP_TOPIC_TYPE)
-				producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQTempTopic(name));
+				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTempTopic(name));
 			else
-				return;
+				return null;
 
-			ActiveMQMessage message = new ActiveMQMessage();
-			message.setContent(new ByteSequence(content));
-			producer.send(message, onComplete);
+			ActiveMQMessage message = (ActiveMQMessage) consumer.receive(6000);
+			return message.getBody(contentType);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		} finally {
-			if (producer != null) {
+			if (consumer != null) {
 				try {
-					producer.close();
+					consumer.close();
 				} catch (JMSException e) {
 				}
 			}
@@ -326,5 +537,81 @@ public class JmsHelper {
 			}
 			this.closeConnection(connection);
 		}
+	}
+
+	/**
+	 * 异步消费消息
+	 * 
+	 * @param name
+	 * @param type
+	 * @param transacted
+	 * @param acknowledgeMode
+	 * @param listener
+	 */
+	public ActiveMQMessageConsumer consumeAsync(String name, byte type, boolean transacted, int acknowledgeMode,
+			MessageListener listener) {
+		ActiveMQConnection connection = null;
+		ActiveMQSession session = null;
+		ActiveMQMessageConsumer consumer = null;
+		try {
+			connection = this.createConnection();
+			session = (ActiveMQSession) connection.createSession(transacted, acknowledgeMode);
+			if (type == ActiveMQDestination.QUEUE_TYPE)
+				consumer = (ActiveMQMessageConsumer) session.createConsumer(new ActiveMQQueue(name));
+			else if (type == ActiveMQDestination.TOPIC_TYPE)
+				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTopic(name));
+			else if (type == ActiveMQDestination.TEMP_QUEUE_TYPE)
+				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTempQueue(name));
+			else if (type == ActiveMQDestination.TEMP_TOPIC_TYPE)
+				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTempTopic(name));
+			else
+				return null;
+
+			consumer.setMessageListener(listener);
+			consumer.commit();
+			return consumer;
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		} finally {
+		}
+	}
+
+	/**
+	 * 浏览消息内容
+	 * 
+	 * @param name
+	 */
+	public List<Object> brower(String name) {
+		List<Object> list = new ArrayList<Object>();
+
+		ActiveMQConnection connection = null;
+		ActiveMQSession session = null;
+		QueueBrowser browser = null;
+		try {
+			connection = this.createConnection();
+			session = (ActiveMQSession) connection.createSession(false, ActiveMQSession.AUTO_ACKNOWLEDGE);
+			browser = session.createBrowser(new ActiveMQQueue(name));
+			while (browser.getEnumeration().hasMoreElements()) {
+				Object object = browser.getEnumeration().nextElement();
+				list.add(object);
+			}
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		} finally {
+			if (browser != null) {
+				try {
+					browser.close();
+				} catch (JMSException e) {
+				}
+			}
+			if (session != null) {
+				try {
+					session.close();
+				} catch (JMSException e) {
+				}
+			}
+			this.closeConnection(connection);
+		}
+		return list;
 	}
 }
