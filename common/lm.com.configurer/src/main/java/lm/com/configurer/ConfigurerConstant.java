@@ -190,6 +190,14 @@ public class ConfigurerConstant {
 	// endregion
 
 	/**
+	 * MQ
+	 *
+	 */
+	public static class MQ {
+		public static final String ACTIVEMQ = "lm.com.configurer.mq.activemq";
+	}
+
+	/**
 	 * ElasticSearch
 	 * 
 	 * @ClassName: ElasticSearch
