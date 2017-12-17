@@ -107,7 +107,7 @@
 		<jstl.version>1.2</jstl.version>
 		<taglibs-standard.version>1.1.2</taglibs-standard.version>
 
-		<!-- spring版本 -->
+		<!-- ↓↓↓↓↓↓↓↓↓↓ Spring版本 Begin ↓↓↓↓↓↓↓↓↓↓ -->
 		<spring.version>4.3.6.RELEASE</spring.version>
 		<spring-session.version>1.3.0.RELEASE</spring-session.version>
 		<!-- spring redis版本 -->
@@ -135,6 +135,7 @@
 		<spring-cloud-brixton.version>Brixton.RELEASE</spring-cloud-brixton.version>
 		<spring-cloud-camden.version>Camden.SR5</spring-cloud-camden.version>
 		<spring-boot-admin.version>1.5.0</spring-boot-admin.version>
+		<!-- ↑↑↑↑↑↑↑↑↑↑ Spring版本 Ended ↑↑↑↑↑↑↑↑↑↑ -->
 
 		<!-- mysql数据库链接jar版本 -->
 		<mysql-connector-java.version>5.1.41</mysql-connector-java.version>
@@ -192,12 +193,12 @@
 		<amqp-client.version>3.6.0</amqp-client.version>
 		<!-- kafka版本 -->
 		<kafka.version>0.10.0.0</kafka.version>
-		
+
 		<!-- httpcore版本 -->
 		<httpcore.version>4.4.1</httpcore.version>
 		<!-- httpclient版本 -->
 		<httpclient.version>4.5</httpclient.version>
-		
+
 		<okhttp.version>3.5.0</okhttp.version>
 		<okio.version>1.11.0</okio.version>
 
@@ -206,11 +207,11 @@
 
 		<!-- elastic search版本 -->
 		<elasticsearch.version>5.1.1</elasticsearch.version>
-		
+
 		<hessian.version>4.0.7</hessian.version>
 
 		<resteasy.version>3.1.3.Final</resteasy.version>
-		
+
 		<!-- quartz版本 -->
 		<quartz.version>2.2.1</quartz.version>
 
@@ -224,13 +225,13 @@
 		<beetl.version>2.7.3</beetl.version>
 
 		<swagger2.version>2.6.1</swagger2.version>
-		
+
 		<!-- cas版本 -->
 		<cas-client-core.version>3.3.3</cas-client-core.version>
 
 		<!-- wurfl版本 -->
 		<wurfl.version>1.8.1.0</wurfl.version>
-		
+
 		<!-- sitemesh -->
 		<sitemesh.version>3.0.1</sitemesh.version>
 
@@ -245,10 +246,10 @@
 		<qiniu-sdk.version>7.2.2</qiniu-sdk.version>
 		<!-- fastdfs-client版本 -->
 		<fastdfs-client-java.version>1.27-SNAPSHOT</fastdfs-client-java.version>
-		
+
 		<!-- spark版本 -->
 		<spark.version>1.3.0</spark.version>
-		
+
 		<!-- kaptcha版本 -->
 		<kaptcha.version>0.0.9</kaptcha.version>
 		<!-- zxing版本 -->
@@ -581,6 +582,7 @@
 			</plugin>
 			<!-- 源码打包 -->
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<version>${maven-plugin.version}</version>
 				<configuration>
@@ -594,6 +596,15 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<!-- Javadoc文档 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-plugin.version}</version>
+				<configuration>
+					<aggregate>true</aggregate>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

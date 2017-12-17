@@ -488,7 +488,7 @@ public class JmsHelper {
 	 * @param acknowledgeMode
 	 */
 	public String consumeSync(String name, byte type) {
-		return this.consumeSync(name, type, String.class, false, ActiveMQSession.AUTO_ACKNOWLEDGE);
+		return this.consumeSync(name, type, TextMessage.class, false, ActiveMQSession.AUTO_ACKNOWLEDGE).toString();
 	}
 
 	/**
@@ -500,7 +500,8 @@ public class JmsHelper {
 	 * @param transacted
 	 * @param acknowledgeMode
 	 */
-	public <T> T consumeSync(String name, byte type, Class<T> contentType, boolean transacted, int acknowledgeMode) {
+	public <T> Object consumeSync(String name, byte type, Class<T> contentType, boolean transacted,
+			int acknowledgeMode) {
 		ActiveMQConnection connection = null;
 		ActiveMQSession session = null;
 		ActiveMQMessageConsumer consumer = null;
@@ -519,7 +520,7 @@ public class JmsHelper {
 				return null;
 
 			ActiveMQMessage message = (ActiveMQMessage) consumer.receive(6000);
-			return message.getBody(contentType);
+			return message.getContent();
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		} finally {
@@ -568,7 +569,7 @@ public class JmsHelper {
 				return null;
 
 			consumer.setMessageListener(listener);
-			consumer.commit();
+			// consumer.commit();
 			return consumer;
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
