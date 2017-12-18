@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.jms.BytesMessage;
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -44,6 +45,7 @@ import lm.com.framework.StreamUtil;
 public class JmsHelper {
 	private ActiveMQConnectionFactory connectionFactory;
 	private PooledConnectionFactory pooledConnectionFactory;
+	private ActiveMQConnection connection;
 
 	private String brokerUrl = ActiveMQConnection.DEFAULT_BROKER_URL;
 	private String userName = ActiveMQConnection.DEFAULT_USER;
@@ -195,7 +197,7 @@ public class JmsHelper {
 		if (this.enablePooled)
 			this.createPooledConnectionFactory();
 		else
-			this.createConnection();
+			this.createConnectionFactory();
 	}
 
 	/**
@@ -255,7 +257,9 @@ public class JmsHelper {
 	 */
 	public ActiveMQConnection createConnection() {
 		try {
-			ActiveMQConnection connection = null;
+			if (this.connection != null)
+				return this.connection;
+
 			if (this.enablePooled) {
 				connection = (ActiveMQConnection) this.pooledConnectionFactory.createConnection();
 			} else {
@@ -270,14 +274,22 @@ public class JmsHelper {
 	}
 
 	/**
-	 * 关闭连接
+	 * 重载+1 关闭连接
+	 */
+	public void closeConnection() {
+		this.closeConnection(this.connection);
+	}
+
+	/**
+	 * 重载+2 关闭连接
 	 * 
 	 * @param connection
 	 */
 	public void closeConnection(ActiveMQConnection connection) {
 		try {
-			if (connection != null) {
-				connection.close();
+			if (this.connection != null) {
+				this.connection.close();
+				this.connection = null;
 			}
 		} catch (JMSException ex) {
 			throw new RuntimeException(ex);
@@ -291,7 +303,7 @@ public class JmsHelper {
 	 * @param type
 	 * @return
 	 */
-	public ActiveMQDestination createDestination(String name, byte type) {
+	public boolean createDestination(String name, byte type) {
 		return this.createDestination(name, type, false, ActiveMQSession.AUTO_ACKNOWLEDGE);
 	}
 
@@ -304,35 +316,34 @@ public class JmsHelper {
 	 * @param acknowledgeMode
 	 * @return
 	 */
-	public ActiveMQDestination createDestination(String name, byte type, boolean transacted, int acknowledgeMode) {
-		ActiveMQConnection connection = null;
+	public boolean createDestination(String name, byte type, boolean transacted, int acknowledgeMode) {
 		ActiveMQSession session = null;
 		ActiveMQDestination destination = null;
+		ActiveMQMessageProducer producer = null;
 		try {
-			connection = this.createConnection();
-			session = (ActiveMQSession) connection.createSession(transacted, acknowledgeMode);
-			if (type == ActiveMQDestination.QUEUE_TYPE)
-				destination = (ActiveMQDestination) session.createQueue(name);
-			else if (type == ActiveMQDestination.TOPIC_TYPE)
-				destination = (ActiveMQDestination) session.createTopic(name);
-			else if (type == ActiveMQDestination.TEMP_QUEUE_TYPE)
-				destination = (ActiveMQDestination) session.createTemporaryQueue();
-			else if (type == ActiveMQDestination.TEMP_TOPIC_TYPE)
-				destination = (ActiveMQDestination) session.createTemporaryTopic();
-			else
-				return null;
-
-			return destination;
+			this.createConnection();
+			session = (ActiveMQSession) this.connection.createSession(transacted, acknowledgeMode);
+			destination = this.getDestination(name, type);
+			if (destination == null)
+				return false;
+			producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQQueue(name));
+			return true;
 		} catch (JMSException ex) {
-			throw new RuntimeException(ex);
+			return false;
 		} finally {
+			if (producer != null) {
+				try {
+					producer.close();
+				} catch (JMSException e) {
+				}
+			}
 			if (session != null) {
 				try {
 					session.close();
 				} catch (JMSException e) {
 				}
 			}
-			this.closeConnection(connection);
+			this.closeConnection();
 		}
 	}
 
@@ -414,22 +425,16 @@ public class JmsHelper {
 	 */
 	public <T> void send(String name, byte type, T content, boolean transacted, int acknowledgeMode, int deliveryMode,
 			int priority, long timeToLive, AsyncCallback onComplete) {
-		ActiveMQConnection connection = null;
 		ActiveMQSession session = null;
 		ActiveMQMessageProducer producer = null;
 		try {
-			connection = this.createConnection();
-			session = (ActiveMQSession) connection.createSession(transacted, acknowledgeMode);
-			if (type == ActiveMQDestination.QUEUE_TYPE)
-				producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQQueue(name));
-			else if (type == ActiveMQDestination.TOPIC_TYPE)
-				producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQTopic(name));
-			else if (type == ActiveMQDestination.TEMP_QUEUE_TYPE)
-				producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQTempQueue(name));
-			else if (type == ActiveMQDestination.TEMP_TOPIC_TYPE)
-				producer = (ActiveMQMessageProducer) session.createProducer(new ActiveMQTempTopic(name));
-			else
-				return;
+			this.createConnection();
+			Destination destination = this.getDestination(name, type);
+			if (destination == null)
+				throw new RuntimeException("destination is null!");
+
+			session = (ActiveMQSession) this.connection.createSession(transacted, acknowledgeMode);
+			producer = (ActiveMQMessageProducer) session.createProducer(destination);
 
 			Message message = null;
 			if (content instanceof byte[]) { // CommandTypes.ACTIVEMQ_BYTES_MESSAGE
@@ -474,7 +479,7 @@ public class JmsHelper {
 				} catch (JMSException e) {
 				}
 			}
-			this.closeConnection(connection);
+			this.closeConnection();
 		}
 	}
 
@@ -502,23 +507,16 @@ public class JmsHelper {
 	 */
 	public <T> Object consumeSync(String name, byte type, Class<T> contentType, boolean transacted,
 			int acknowledgeMode) {
-		ActiveMQConnection connection = null;
 		ActiveMQSession session = null;
 		ActiveMQMessageConsumer consumer = null;
 		try {
-			connection = this.createConnection();
-			session = (ActiveMQSession) connection.createSession(transacted, acknowledgeMode);
-			if (type == ActiveMQDestination.QUEUE_TYPE)
-				consumer = (ActiveMQMessageConsumer) session.createConsumer(new ActiveMQQueue(name));
-			else if (type == ActiveMQDestination.TOPIC_TYPE)
-				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTopic(name));
-			else if (type == ActiveMQDestination.TEMP_QUEUE_TYPE)
-				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTempQueue(name));
-			else if (type == ActiveMQDestination.TEMP_TOPIC_TYPE)
-				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTempTopic(name));
-			else
-				return null;
+			this.createConnection();
+			session = (ActiveMQSession) this.connection.createSession(transacted, acknowledgeMode);
+			Destination destination = this.getDestination(name, type);
+			if (destination == null)
+				throw new RuntimeException("destination is null!");
 
+			consumer = (ActiveMQMessageConsumer) session.createConsumer(destination);
 			ActiveMQMessage message = (ActiveMQMessage) consumer.receive(6000);
 			return message.getContent();
 		} catch (Exception ex) {
@@ -536,7 +534,7 @@ public class JmsHelper {
 				} catch (JMSException e) {
 				}
 			}
-			this.closeConnection(connection);
+			this.closeConnection();
 		}
 	}
 
@@ -551,23 +549,16 @@ public class JmsHelper {
 	 */
 	public ActiveMQMessageConsumer consumeAsync(String name, byte type, boolean transacted, int acknowledgeMode,
 			MessageListener listener) {
-		ActiveMQConnection connection = null;
 		ActiveMQSession session = null;
 		ActiveMQMessageConsumer consumer = null;
 		try {
-			connection = this.createConnection();
-			session = (ActiveMQSession) connection.createSession(transacted, acknowledgeMode);
-			if (type == ActiveMQDestination.QUEUE_TYPE)
-				consumer = (ActiveMQMessageConsumer) session.createConsumer(new ActiveMQQueue(name));
-			else if (type == ActiveMQDestination.TOPIC_TYPE)
-				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTopic(name));
-			else if (type == ActiveMQDestination.TEMP_QUEUE_TYPE)
-				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTempQueue(name));
-			else if (type == ActiveMQDestination.TEMP_TOPIC_TYPE)
-				consumer = (ActiveMQMessageConsumer) session.createProducer(new ActiveMQTempTopic(name));
-			else
-				return null;
+			this.createConnection();
+			session = (ActiveMQSession) this.connection.createSession(transacted, acknowledgeMode);
+			Destination destination = this.getDestination(name, type);
+			if (destination == null)
+				throw new RuntimeException("destination is null!");
 
+			consumer = (ActiveMQMessageConsumer) session.createConsumer(destination);
 			consumer.setMessageListener(listener);
 			// consumer.commit();
 			return consumer;
@@ -585,12 +576,11 @@ public class JmsHelper {
 	public List<Object> brower(String name) {
 		List<Object> list = new ArrayList<Object>();
 
-		ActiveMQConnection connection = null;
 		ActiveMQSession session = null;
 		QueueBrowser browser = null;
 		try {
-			connection = this.createConnection();
-			session = (ActiveMQSession) connection.createSession(false, ActiveMQSession.AUTO_ACKNOWLEDGE);
+			this.createConnection();
+			session = (ActiveMQSession) this.connection.createSession(false, ActiveMQSession.AUTO_ACKNOWLEDGE);
 			browser = session.createBrowser(new ActiveMQQueue(name));
 			while (browser.getEnumeration().hasMoreElements()) {
 				Object object = browser.getEnumeration().nextElement();
@@ -611,8 +601,30 @@ public class JmsHelper {
 				} catch (JMSException e) {
 				}
 			}
-			this.closeConnection(connection);
+			this.closeConnection();
 		}
 		return list;
+	}
+
+	/**
+	 * 获取目标
+	 * 
+	 * @param name
+	 * @param type
+	 * @return
+	 */
+	private ActiveMQDestination getDestination(String name, byte type) {
+		switch (type) {
+			case ActiveMQDestination.QUEUE_TYPE:
+				return new ActiveMQQueue(name);
+			case ActiveMQDestination.TOPIC_TYPE:
+				return new ActiveMQTopic(name);
+			case ActiveMQDestination.TEMP_QUEUE_TYPE:
+				return new ActiveMQTempQueue(name);
+			case ActiveMQDestination.TEMP_TOPIC_TYPE:
+				return new ActiveMQTempTopic(name);
+			default:
+				return null;
+		}
 	}
 }

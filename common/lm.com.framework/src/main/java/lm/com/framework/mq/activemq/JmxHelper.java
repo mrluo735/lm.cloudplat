@@ -34,12 +34,88 @@ public class JmxHelper {
 	private String userName;
 	private String password;
 
+	// region 属性
+	/**
+	 * 
+	 * @return
+	 */
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	// endregion
+
+	/**
+	 * 重载+1 构造函数
+	 */
+	public JmxHelper() {
+		this.getBrokerFacade();
+	}
+
+	/**
+	 * 重载+2 构造函数
+	 * 
+	 * @param host
+	 * @param port
+	 */
+	public JmxHelper(String host, int port) {
+		this.host = host;
+		this.port = port;
+		this.getBrokerFacade();
+	}
+
+	/**
+	 * 重载+3 构造函数
+	 * 
+	 * @param host
+	 * @param port
+	 * @param userName
+	 * @param password
+	 */
+	public JmxHelper(String host, int port, String userName, String password) {
+		this.host = host;
+		this.port = port;
+		this.userName = userName;
+		this.password = password;
+		this.getBrokerFacade();
+	}
+
 	/**
 	 * 获取BrokerFacade
 	 * 
 	 * @return
 	 */
 	public RemoteJMXBrokerFacade getBrokerFacade() {
+		if (this.brokerFacade != null)
+			return this.brokerFacade;
+
 		this.brokerFacade = new RemoteJMXBrokerFacade();
 		System.setProperty("webconsole.jmx.url", String.format(URL_FORMAT, this.host, this.port));
 		if (!StringUtil.isNullOrWhiteSpace(this.userName)) {
@@ -57,6 +133,7 @@ public class JmxHelper {
 	public void closeBrokerFacade() {
 		if (this.brokerFacade != null) {
 			this.brokerFacade.shutdown();
+			this.brokerFacade = null;
 		}
 	}
 
@@ -239,15 +316,84 @@ public class JmxHelper {
 	/**
 	 * 获取Queue信息
 	 * 
+	 * @param name
 	 * @return
 	 */
-	public Collection<QueueViewMBean> getQueues() {
+	public Map<String, Object> getQueue(String name) {
+		Map<String, Object> map = new HashMap<String, Object>();
 		try {
 			this.getBrokerFacade();
-			return this.brokerFacade.getQueues();
+			QueueViewMBean qBean = this.brokerFacade.getQueue(name);
+			map.put("alwaysRetroactive", qBean.isAlwaysRetroactive());
+			map.put("averageBlockedTime", qBean.getAverageBlockedTime());
+			map.put("averageEnqueueTime", qBean.getAverageEnqueueTime());
+			map.put("averageMessageSize", qBean.getAverageMessageSize());
+			map.put("blockedProducerWarningInterval", qBean.getBlockedProducerWarningInterval());
+			map.put("blockedSends", qBean.getBlockedSends());
+			map.put("cacheEnabled", qBean.isCacheEnabled());
+			map.put("consumerCount", qBean.getConsumerCount());
+			map.put("cursorFull", qBean.isCursorFull());
+			map.put("cursorMemoryUsage", qBean.getCursorMemoryUsage());
+			map.put("cursorPercentUsage", qBean.getCursorPercentUsage());
+			map.put("dlq", qBean.isDLQ());
+			map.put("dequeueCount", qBean.getDequeueCount());
+			map.put("dispatchCount", qBean.getDispatchCount());
+			map.put("enqueueCount", qBean.getEnqueueCount());
+			map.put("expiredCount", qBean.getExpiredCount());
+			map.put("forwardCount", qBean.getForwardCount());
+			map.put("inFlightCount", qBean.getInFlightCount());
+			map.put("maxAuditDepth", qBean.getMaxAuditDepth());
+			map.put("maxEnqueueTime", qBean.getMaxEnqueueTime());
+			map.put("maxMessageSize", qBean.getMaxMessageSize());
+			map.put("maxPageSize", qBean.getMaxPageSize());
+			map.put("maxProducersToAudit", qBean.getMaxProducersToAudit());
+			map.put("memoryLimit", qBean.getMemoryLimit());
+			map.put("memoryPercentUsage", qBean.getMemoryPercentUsage());
+			map.put("memoryUsageByteCount", qBean.getMemoryUsageByteCount());
+			map.put("memoryUsagePortion", qBean.getMemoryUsagePortion());
+			map.put("messageGroupType", qBean.getMessageGroupType());
+			map.put("messageGroups", qBean.getMessageGroups());
+			map.put("minEnqueueTime", qBean.getMinEnqueueTime());
+			map.put("minMessageSize", qBean.getMinMessageSize());
+			map.put("name", qBean.getName());
+			map.put("options", qBean.getOptions());
+			map.put("paused", qBean.isPaused());
+			map.put("prioritizedMessages", qBean.isPrioritizedMessages());
+			map.put("producerCount", qBean.getProducerCount());
+			map.put("producerFlowControl", qBean.isProducerFlowControl());
+			map.put("queueSize", qBean.getQueueSize());
+			map.put("slowConsumerStrategy", qBean.getSlowConsumerStrategy());
+			map.put("storeMessageSize", qBean.getStoreMessageSize());
+			map.put("subscriptions", qBean.getSubscriptions());
+			map.put("totalBlockedTime", qBean.getTotalBlockedTime());
+			map.put("useCache", qBean.isUseCache());
 		} catch (Exception e) {
+		} finally {
+			this.closeBrokerFacade();
 		}
-		return null;
+		return map;
+	}
+
+	/**
+	 * 获取Queue信息
+	 * 
+	 * @return
+	 */
+	public List<Map<String, Object>> getQueues() {
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		try {
+			this.getBrokerFacade();
+			Collection<QueueViewMBean> collection = this.brokerFacade.getQueues();
+			if (collection != null && collection.size() > 0) {
+				for (QueueViewMBean item : collection) {
+					list.add(this.getQueue(item.getName()));
+				}
+			}
+		} catch (Exception e) {
+		} finally {
+			this.closeBrokerFacade();
+		}
+		return list;
 	}
 	// endregion
 
@@ -255,15 +401,77 @@ public class JmxHelper {
 	/**
 	 * 获取Topic信息
 	 * 
+	 * @param name
 	 * @return
 	 */
-	public Collection<TopicViewMBean> getTopics() {
+	public Map<String, Object> getTopic(String name) {
+		Map<String, Object> map = new HashMap<String, Object>();
 		try {
 			this.getBrokerFacade();
-			return this.brokerFacade.getTopics();
+			TopicViewMBean qBean = this.brokerFacade.getTopic(name);
+			map.put("alwaysRetroactive", qBean.isAlwaysRetroactive());
+			map.put("averageBlockedTime", qBean.getAverageBlockedTime());
+			map.put("averageEnqueueTime", qBean.getAverageEnqueueTime());
+			map.put("averageMessageSize", qBean.getAverageMessageSize());
+			map.put("blockedProducerWarningInterval", qBean.getBlockedProducerWarningInterval());
+			map.put("blockedSends", qBean.getBlockedSends());
+			map.put("consumerCount", qBean.getConsumerCount());
+			map.put("dlq", qBean.isDLQ());
+			map.put("dequeueCount", qBean.getDequeueCount());
+			map.put("dispatchCount", qBean.getDispatchCount());
+			map.put("enqueueCount", qBean.getEnqueueCount());
+			map.put("expiredCount", qBean.getExpiredCount());
+			map.put("forwardCount", qBean.getForwardCount());
+			map.put("inFlightCount", qBean.getInFlightCount());
+			map.put("maxAuditDepth", qBean.getMaxAuditDepth());
+			map.put("maxEnqueueTime", qBean.getMaxEnqueueTime());
+			map.put("maxMessageSize", qBean.getMaxMessageSize());
+			map.put("maxPageSize", qBean.getMaxPageSize());
+			map.put("maxProducersToAudit", qBean.getMaxProducersToAudit());
+			map.put("memoryLimit", qBean.getMemoryLimit());
+			map.put("memoryPercentUsage", qBean.getMemoryPercentUsage());
+			map.put("memoryUsageByteCount", qBean.getMemoryUsageByteCount());
+			map.put("memoryUsagePortion", qBean.getMemoryUsagePortion());
+			map.put("minEnqueueTime", qBean.getMinEnqueueTime());
+			map.put("minMessageSize", qBean.getMinMessageSize());
+			map.put("name", qBean.getName());
+			map.put("options", qBean.getOptions());
+			map.put("prioritizedMessages", qBean.isPrioritizedMessages());
+			map.put("producerCount", qBean.getProducerCount());
+			map.put("producerFlowControl", qBean.isProducerFlowControl());
+			map.put("queueSize", qBean.getQueueSize());
+			map.put("slowConsumerStrategy", qBean.getSlowConsumerStrategy());
+			map.put("storeMessageSize", qBean.getStoreMessageSize());
+			map.put("subscriptions", qBean.getSubscriptions());
+			map.put("totalBlockedTime", qBean.getTotalBlockedTime());
+			map.put("useCache", qBean.isUseCache());
 		} catch (Exception e) {
+		} finally {
+			this.closeBrokerFacade();
 		}
-		return null;
+		return map;
+	}
+
+	/**
+	 * 获取Topic信息
+	 * 
+	 * @return
+	 */
+	public List<Map<String, Object>> getTopics() {
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		try {
+			this.getBrokerFacade();
+			Collection<TopicViewMBean> collection = this.brokerFacade.getTopics();
+			if (collection != null && collection.size() > 0) {
+				for (TopicViewMBean item : collection) {
+					list.add(this.getTopic(item.getName()));
+				}
+			}
+		} catch (Exception e) {
+		} finally {
+			this.closeBrokerFacade();
+		}
+		return list;
 	}
 	// endregion
 

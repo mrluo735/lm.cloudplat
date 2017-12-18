@@ -88,11 +88,22 @@ public class JmxHelper {
 	// endregion
 
 	/**
+	 * 构造函数
+	 */
+	public JmxHelper() {
+		this.getConnector();
+	}
+
+	/**
+	 * 获取Connector
 	 * 
 	 * @return
 	 */
 	public JMXConnector getConnector() {
 		try {
+			if (this.connector != null)
+				return this.connector;
+
 			JMXServiceURL serivceUrl = new JMXServiceURL(String.format(URL_FORMAT, host, port));
 			Map<String, Object> environment = new HashMap<String, Object>();
 			if (!StringUtil.isNullOrWhiteSpace(userName)) {
@@ -112,6 +123,7 @@ public class JmxHelper {
 		if (this.connector != null) {
 			try {
 				this.connector.close();
+				this.connector = null;
 			} catch (IOException e) {
 			}
 		}
@@ -125,7 +137,7 @@ public class JmxHelper {
 	public Map<String, Object> getClassLoading() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
-			this.getConnector();
+			this.closeConnector();
 			MBeanServerConnection connection = this.connector.getMBeanServerConnection();
 			ObjectName objectName = new ObjectName(CLASSLOADING_OBJECT);
 			ClassLoadingMXBean clBean = MBeanServerInvocationHandler.newProxyInstance(connection, objectName,
@@ -151,7 +163,7 @@ public class JmxHelper {
 	public Map<String, Object> getOperatingSystem() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
-			this.getConnector();
+			this.closeConnector();
 			MBeanServerConnection connection = this.connector.getMBeanServerConnection();
 			ObjectName objectName = new ObjectName(OPERATINGSYSTEM_OBJECT);
 			OperatingSystemMXBean osBean = MBeanServerInvocationHandler.newProxyInstance(connection, objectName,
@@ -185,7 +197,7 @@ public class JmxHelper {
 	public Map<String, Object> getRuntime() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
-			this.getConnector();
+			this.closeConnector();
 			MBeanServerConnection connection = this.connector.getMBeanServerConnection();
 			ObjectName objectName = new ObjectName(RUNTIME_OBJECT);
 			RuntimeMXBean rtBean = MBeanServerInvocationHandler.newProxyInstance(connection, objectName,
@@ -223,7 +235,7 @@ public class JmxHelper {
 	public Map<String, Object> getThreading() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
-			this.getConnector();
+			this.closeConnector();
 			MBeanServerConnection connection = this.connector.getMBeanServerConnection();
 			ObjectName objectName = new ObjectName(THREADING_OBJECT);
 			ThreadMXBean rtBean = MBeanServerInvocationHandler.newProxyInstance(connection, objectName,
@@ -262,7 +274,7 @@ public class JmxHelper {
 	public Map<String, Object> getActiveMQBroker(String brokerName) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
-			this.getConnector();
+			this.closeConnector();
 			MBeanServerConnection connection = this.connector.getMBeanServerConnection();
 			ObjectName objectName = new ObjectName(String.format(ACTIVEMQ_BROKER_FORMAT, brokerName));
 			BrokerViewMBean bvBean = MBeanServerInvocationHandler.newProxyInstance(connection, objectName,
@@ -330,7 +342,7 @@ public class JmxHelper {
 	public Map<String, Object> getActiveMQHealth(String brokerName) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
-			this.getConnector();
+			this.closeConnector();
 			MBeanServerConnection connection = this.connector.getMBeanServerConnection();
 			ObjectName objectName = new ObjectName(String.format(ACTIVEMQ_HEALTH_FORMAT, brokerName));
 			HealthViewMBean hvBean = MBeanServerInvocationHandler.newProxyInstance(connection, objectName,
@@ -354,7 +366,6 @@ public class JmxHelper {
 	public Map<String, Object> getActiveMQQueue(String brokerName, String queueName) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
-			this.getConnector();
 			MBeanServerConnection connection = this.connector.getMBeanServerConnection();
 			ObjectName objectName = new ObjectName(String.format(ACTIVEMQ_QUEUE_FORMAT, brokerName, queueName));
 			QueueViewMBean qBean = MBeanServerInvocationHandler.newProxyInstance(connection, objectName,
@@ -421,7 +432,7 @@ public class JmxHelper {
 	public Map<String, Object> getActiveMQTopic(String brokerName, String topicName) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
-			this.getConnector();
+			this.closeConnector();
 			MBeanServerConnection connection = this.connector.getMBeanServerConnection();
 			ObjectName objectName = new ObjectName(String.format(ACTIVEMQ_TOPIC_FORMAT, brokerName, topicName));
 			TopicViewMBean qBean = MBeanServerInvocationHandler.newProxyInstance(connection, objectName,
