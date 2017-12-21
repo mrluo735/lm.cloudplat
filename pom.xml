@@ -249,6 +249,8 @@
 
 		<!-- spark版本 -->
 		<spark.version>1.3.0</spark.version>
+		
+		<hanlp.version>portable-1.2.8</hanlp.version>
 
 		<!-- kaptcha版本 -->
 		<kaptcha.version>0.0.9</kaptcha.version>
