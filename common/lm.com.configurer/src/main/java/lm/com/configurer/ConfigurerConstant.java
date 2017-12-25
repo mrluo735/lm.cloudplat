@@ -194,7 +194,35 @@ public class ConfigurerConstant {
 	 *
 	 */
 	public static class MQ {
-		public static final String ACTIVEMQ = "lm.com.configurer.mq.activemq";
+		/**
+		 * ActiveMQ
+		 * 
+		 * @author mrluo735
+		 *
+		 */
+		public static class ActiveMQ {
+			/**
+			 * 消费端
+			 */
+			public static final String CONSUMER_BOOT = "lm.com.configurer.mq.activemq.consumer.boot";
+		}
+
+		/**
+		 * Kafka
+		 * 
+		 * @author mrluo735
+		 *
+		 */
+		public static class Kafka {
+			/**
+			 * 生产端
+			 */
+			public static final String PRODUCER_BOOT = "lm.com.configurer.mq.kafka.producer.boot";
+			/**
+			 * 消费端
+			 */
+			public static final String CONSUMER_BOOT = "lm.com.configurer.mq.kafka.consumer.boot";
+		}
 	}
 
 	/**

@@ -363,6 +363,115 @@ public final class ReflectUtil {
 	}
 
 	/**
+	 * 重载+1 获取对象的所有注解
+	 * 
+	 * @param object
+	 * @return
+	 */
+	public static Annotation[] getDeclaredAnnotations(Object object) {
+		return object.getClass().getDeclaredAnnotations();
+	}
+
+	/**
+	 * 重载+2 获取方法的所有注解
+	 * 
+	 * @param method
+	 * @return
+	 */
+	public static Annotation[] getDeclaredAnnotations(Method method) {
+		return method.getDeclaringClass().getDeclaredAnnotations();
+	}
+
+	/**
+	 * 重载+1 根据注解类型获取对象的注解
+	 * 
+	 * @param clazz
+	 * @return
+	 */
+	public static <A extends Annotation> A getDeclaredAnnotation(Class<?> clazz, Class<A> annotationClass) {
+		return clazz.getDeclaredAnnotation(annotationClass);
+	}
+
+	/**
+	 * 重载+2 根据注解类型获取对象的注解
+	 * 
+	 * @param method
+	 * @return
+	 */
+	public static <A extends Annotation> A getDeclaredAnnotation(Method method, Class<A> annotationClass) {
+		return method.getDeclaringClass().getDeclaredAnnotation(annotationClass);
+	}
+
+	/**
+	 * 重载+1 根据注解类型获取对象的注解
+	 * 
+	 * @param clazz
+	 * @param annotationClass
+	 * @param annotationMethod
+	 * @return
+	 */
+	public static <A extends Annotation> Object getDeclaredAnnotationValue(Class<?> clazz, Class<A> annotationClass,
+			String annotationMethod) {
+		return getDeclaredAnnotationValue(clazz, annotationClass, annotationMethod, null, null);
+	}
+
+	/**
+	 * 重载+2 根据注解类型获取对象的注解
+	 * 
+	 * @param method
+	 * @param annotationClass
+	 * @param annotationMethod
+	 * @return
+	 */
+	public static <A extends Annotation> Object getDeclaredAnnotationValue(Method method, Class<A> annotationClass,
+			String annotationMethod) {
+		return getDeclaredAnnotationValue(method.getDeclaringClass(), annotationClass, annotationMethod, null, null);
+	}
+
+	/**
+	 * 重载+3 根据注解类型获取对象的注解
+	 * 
+	 * @param method
+	 * @param annotationClass
+	 * @param annotationMethod
+	 * @param parameterTypes
+	 * @param args
+	 * @return
+	 */
+	public static <A extends Annotation> Object getDeclaredAnnotationValue(Method method, Class<A> annotationClass,
+			String annotationMethod, Class<?>[] parameterTypes, Object[] args) {
+		return getDeclaredAnnotationValue(method.getDeclaringClass(), annotationClass, annotationMethod, parameterTypes,
+				args);
+	}
+
+	/**
+	 * 重载+4 根据注解类型获取对象的注解
+	 * 
+	 * @param clazz
+	 * @param annotationClass
+	 * @param annotationMethod
+	 * @param parameterTypes
+	 * @param args
+	 * @return
+	 */
+	public static <A extends Annotation> Object getDeclaredAnnotationValue(Class<?> clazz, Class<A> annotationClass,
+			String annotationMethod, Class<?>[] parameterTypes, Object[] args) {
+		Annotation annotation = getDeclaredAnnotation(clazz, annotationClass);
+		if (annotation == null)
+			return null;
+
+		try {
+			Method method = annotation.annotationType().getMethod(annotationMethod, parameterTypes);
+			if (method == null)
+				return null;
+
+			return method.invoke(clazz.newInstance(), args);
+		} catch (Exception ex) {
+			return null;
+		}
+	}
+
+	/**
 	 * 获取指定方法的注解参数名
 	 * 
 	 * @param method
