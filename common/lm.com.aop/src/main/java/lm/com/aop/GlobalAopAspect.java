@@ -26,6 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import lm.com.aop.model.AopClass;
+import lm.com.aop.model.EnumClassType;
+import lm.com.aop.util.ClassUtil;
+import lm.com.aop.util.LogUtil;
 import lm.com.framework.JsonUtil;
 import lm.com.framework.StringUtil;
 import lm.com.framework.http.EnumHttpStatus;
@@ -129,7 +133,7 @@ public class GlobalAopAspect {
 	@Around(value = "pointcut()")
 	public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 		Object result = null;
-		AopClass aopClass = AspectjUtil.getBody(proceedingJoinPoint);
+		AopClass aopClass = ClassUtil.getBody(proceedingJoinPoint);
 		try {
 			this.printInparams(proceedingJoinPoint);
 
@@ -145,7 +149,7 @@ public class GlobalAopAspect {
 		} catch (Exception ex) {
 			logger.error("拦截器around异常！异常原因：{}", ex);
 			// 写错误日志
-			String errorLog = AspectjLog.getErrorLog(aopClass, ex.getMessage());
+			String errorLog = LogUtil.getErrorLog(aopClass, ex.getMessage());
 			//			this.producerHelper.send(this.KAFKA_TOPIC_SYSTEM_ERRORLOG, errorLog);
 
 			result = this.catchResult(aopClass, ex);
@@ -163,7 +167,7 @@ public class GlobalAopAspect {
 	 * @param proceedingJoinPoint
 	 */
 	private void printInparams(ProceedingJoinPoint proceedingJoinPoint) {
-		HttpServletRequest request = AspectjUtil.getServletRequest(proceedingJoinPoint);
+		HttpServletRequest request = ClassUtil.getServletRequest(proceedingJoinPoint);
 		if (request == null)
 			return;
 
@@ -192,16 +196,16 @@ public class GlobalAopAspect {
 	 */
 	private void writeLog(AopClass aopClass, ProceedingJoinPoint proceedingJoinPoint, long totalMillisecond) {
 		// 执行日志
-		String strLog = AspectjLog.getRunLog(aopClass, totalMillisecond);
+		String strLog = LogUtil.getRunLog(aopClass, totalMillisecond);
 		//		this.producerHelper.send(this.KAFKA_TOPIC_SYSTEM_RUNLOG, strLog);
 		// 前端控制器则写入操作日志和上传日志
 		if (aopClass.getClassType() == EnumClassType.Controller
 				|| aopClass.getClassType() == EnumClassType.RestController) {
-			strLog = AspectjLog.getActionLog(aopClass);
+			strLog = LogUtil.getActionLog(aopClass);
 			//			this.producerHelper.send(this.KAFKA_TOPIC_SYSTEM_ACTIONLOG, strLog);
 
 			// 上传日志
-			HttpServletRequest request = AspectjUtil.getServletRequest(proceedingJoinPoint);
+			HttpServletRequest request = ClassUtil.getServletRequest(proceedingJoinPoint);
 			if (request != null && !StringUtil.isNullOrWhiteSpace(request.getParameter("uploadLogJson"))) {
 				String uploadLogJson = request.getParameter("uploadLogJson");
 				//				this.producerHelper.send(this.KAFKA_TOPIC_SYSTEM_UPLOADLOG, uploadLogJson);

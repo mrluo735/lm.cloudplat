@@ -7,7 +7,7 @@
  * @date 2017年5月2日上午11:34:03
  * @version v1.0.0
  */
-package lm.com.aop;
+package lm.com.aop.model;
 
 import java.io.Serializable;
 

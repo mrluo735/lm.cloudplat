@@ -7,11 +7,13 @@
  * @date 2017年5月2日上午10:49:54
  * @version v1.0.0
  */
-package lm.com.aop;
+package lm.com.aop.util;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import lm.com.aop.model.AopClass;
+import lm.com.aop.model.EnumClassType;
 import lm.com.framework.DateTimeUtil;
 import lm.com.framework.JsonUtil;
 import lm.com.framework.StringUtil;
@@ -25,7 +27,7 @@ import lm.com.framework.webmvc.RuntimeContext;
  * @date 2017年5月2日 上午10:49:54
  * 
  */
-public class AspectjLog {
+public class LogUtil {
 	/**
 	 * 执行开销日志
 	 * 

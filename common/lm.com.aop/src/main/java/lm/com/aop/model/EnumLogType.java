@@ -7,7 +7,7 @@
  * @date 2017年5月2日上午11:37:39
  * @version v1.0.0
  */
-package lm.com.aop;
+package lm.com.aop.model;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,49 +15,54 @@ import java.util.Map;
 import lm.com.framework.enumerate.IBaseEnumInt;
 
 /**
- * @ClassName: EnumClassType
+ * @ClassName: EnumLogType
  * @Description: TODO(这里用一句话描述这个类的作用)
  * @author mrluo735
  * @date 2017年5月2日 上午11:37:39
  * 
  */
-public enum EnumClassType implements IBaseEnumInt<EnumClassType> {
+public enum EnumLogType implements IBaseEnumInt<EnumLogType> {
 	/**
-	 * 普通类
+	 * 执行开销日志
 	 */
-	Common(1, "普通类"),
+	Run(1, "执行开销日志"),
 	/**
-	 * 控制器
+	 * 行为操作日志
 	 */
-	Controller(2, "控制器"),
+	Action(2, "行为操作日志"),
 	/**
-	 * Rest控制器
+	 * 错误日志
 	 */
-	RestController(3, "Rest控制器");
+	Error(3, "错误日志"),
+	/**
+	 * 上传日志
+	 */
+	Upload(4, "上传日志");
 
 	private String name;
 	private Integer value;
 	private String description;
 
-	static Map<String, EnumClassType> enumNameMap = new HashMap<String, EnumClassType>();
-	static Map<Integer, EnumClassType> enumValueMap = new HashMap<Integer, EnumClassType>();
+	static Map<String, EnumLogType> enumNameMap = new HashMap<String, EnumLogType>();
+	static Map<Integer, EnumLogType> enumValueMap = new HashMap<Integer, EnumLogType>();
 	static {
-		for (EnumClassType type : EnumClassType.values()) {
+		for (EnumLogType type : EnumLogType.values()) {
 			enumNameMap.put(type.toString(), type);
 			enumValueMap.put(type.getValue(), type);
 		}
 	}
 
-	private EnumClassType(Integer value, String description) {
+	private EnumLogType(Integer value, String description) {
+		this.name = name();
 		this.value = value;
 		this.description = description;
 	}
 
-	public static EnumClassType getEnum(String name) {
+	public static EnumLogType getEnum(String name) {
 		return enumNameMap.get(name);
 	}
 
-	public static EnumClassType getEnum(Integer value) {
+	public static EnumLogType getEnum(Integer value) {
 		return enumValueMap.get(value);
 	}
 

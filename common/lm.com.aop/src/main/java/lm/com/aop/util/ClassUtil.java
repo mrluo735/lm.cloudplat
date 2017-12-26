@@ -7,7 +7,7 @@
  * @date 2017年5月2日上午10:41:54
  * @version v1.0.0
  */
-package lm.com.aop;
+package lm.com.aop.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -24,6 +24,8 @@ import org.springframework.context.annotation.Description;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
+import lm.com.aop.model.AopClass;
+import lm.com.aop.model.EnumClassType;
 import lm.com.framework.JsonUtil;
 import lm.com.framework.ReflectUtil;
 
@@ -36,8 +38,8 @@ import lm.com.framework.ReflectUtil;
  * @date 2017年5月2日 上午10:41:54
  * 
  */
-public class AspectjUtil {
-	private static final Logger logger = LoggerFactory.getLogger(AspectjUtil.class);
+public class ClassUtil {
+	private static final Logger logger = LoggerFactory.getLogger(ClassUtil.class);
 
 	/**
 	 * 获取拦截主体信息
