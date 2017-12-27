@@ -33,6 +33,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import lm.com.framework.ReflectUtil;
+import lm.com.framework.StringUtil;
+import lm.com.framework.webmvc.SpringApplicationContext;
 
 /**
  * @ClassName: AopConfigurer
@@ -48,37 +50,10 @@ public class AopConfigurer {
 
 	@Value("${lm.aop.aspect.pointcut.expression}")
 	private String expression = "";
+	@Value("${lm.aop.aspect.pointcut.class}")
+	private String pointcutClass = AopAspectJActiveMQ.class.getName();
 	@Value("${lm.aop.method.description.pattern}")
 	private String pattern = "classpath:mdmap/*.properties";
-
-	/**
-	 * 方法描述
-	 * 
-	 * @return
-	 */
-	@Bean
-	public Map<String, String> methodDescription() {
-		Map<String, String> map = new HashMap<String, String>();
-		try {
-			Resource[] resources = PATH_RESOURCE_RESOLVER.getResources(pattern);
-			if (resources == null || resources.length < 1)
-				return map;
-
-			Properties properties = new Properties();
-			for (Resource resource : resources) {
-				if (!resource.isReadable())
-					continue;
-				properties.clear();
-				properties.load(resource.getInputStream());
-				for (String key : properties.stringPropertyNames()) {
-					map.put(key, properties.getProperty(key, ""));
-				}
-			}
-		} catch (Exception ex) {
-			logger.error("加载方法描述出错！错误原因: {}", ex);
-		}
-		return map;
-	}
 
 	/**
 	 * 定义切点,设置拦截规则
@@ -87,6 +62,9 @@ public class AopConfigurer {
 	 */
 	@Bean
 	public AspectJExpressionPointcut pointcut() {
+		Class<?> clazz = this.getPointcutClass();
+		SpringApplicationContext.registerBean(clazz, StringUtil.uncapitalize(clazz.getSimpleName()));
+
 		AspectJExpressionPointcut aspectJExpPointcut = new AspectJExpressionPointcut();
 		aspectJExpPointcut.setExpression(this.expression);
 		return aspectJExpPointcut;
@@ -99,7 +77,7 @@ public class AopConfigurer {
 	 */
 	@Bean
 	public DefaultPointcutAdvisor beforeAdvisor() {
-		Method method = ReflectUtil.getMethod(GlobalAopAspect.class, "before", JoinPoint.class);
+		Method method = ReflectUtil.getMethod(this.getPointcutClass(), "before", JoinPoint.class);
 		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
 		AspectJMethodBeforeAdvice beforeAdvice = new AspectJMethodBeforeAdvice(method, this.pointcut(), saif);
 
@@ -179,5 +157,46 @@ public class AopConfigurer {
 		defaultPointcutAdvisor.setPointcut(this.pointcut());
 		defaultPointcutAdvisor.setAdvice(aroundAdvice);
 		return defaultPointcutAdvisor;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	private Class<?> getPointcutClass() {
+		try {
+			Class<?> clazz = Class.forName(this.pointcutClass);
+			return clazz;
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 方法描述
+	 * 
+	 * @return
+	 */
+	private Map<String, String> methodDescription() {
+		Map<String, String> map = new HashMap<String, String>();
+		try {
+			Resource[] resources = PATH_RESOURCE_RESOLVER.getResources(pattern);
+			if (resources == null || resources.length < 1)
+				return map;
+
+			Properties properties = new Properties();
+			for (Resource resource : resources) {
+				if (!resource.isReadable())
+					continue;
+				properties.clear();
+				properties.load(resource.getInputStream());
+				for (String key : properties.stringPropertyNames()) {
+					map.put(key, properties.getProperty(key, ""));
+				}
+			}
+		} catch (Exception ex) {
+			logger.error("加载方法描述出错！错误原因: ", ex);
+		}
+		return map;
 	}
 }

@@ -7,10 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.slf4j.Logger;
-import org.springframework.jms.core.JmsMessagingTemplate;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.transaction.NoTransactionException;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import lm.com.aop.model.AopClass;
 import lm.com.aop.model.EnumClassType;

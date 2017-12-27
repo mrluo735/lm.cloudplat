@@ -1,6 +1,7 @@
 package lm.com.aop;
 
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.aspectj.lang.JoinPoint;
@@ -30,6 +31,24 @@ public class AopAspectJKafka extends AbstractAopAspectJ {
 
 	@Autowired
 	private KafkaTemplate<byte[], byte[]> kafkaTemplate;
+	
+	private Map<String, String> mdMap = new HashMap<String, String>();
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Map<String, String> getMdMap() {
+		return this.mdMap;
+	}
+
+	/**
+	 * 
+	 * @param mdMap
+	 */
+	public void setMdMap(Map<String, String> mdMap) {
+		this.mdMap = mdMap;
+	}
 
 	/**
 	 * 前置通知

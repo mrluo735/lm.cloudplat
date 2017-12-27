@@ -1,5 +1,6 @@
 package lm.com.aop;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.aspectj.lang.JoinPoint;
@@ -29,6 +30,24 @@ public class AopAspectJActiveMQ extends AbstractAopAspectJ {
 
 	@Autowired
 	private JmsMessagingTemplate jmsMessagingTemplate;
+
+	private Map<String, String> mdMap = new HashMap<String, String>();
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Map<String, String> getMdMap() {
+		return this.mdMap;
+	}
+
+	/**
+	 * 
+	 * @param mdMap
+	 */
+	public void setMdMap(Map<String, String> mdMap) {
+		this.mdMap = mdMap;
+	}
 
 	/**
 	 * 前置通知
