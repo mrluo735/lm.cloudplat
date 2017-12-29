@@ -56,128 +56,12 @@ public class AopConfigurer {
 	private String pattern = "classpath:mdmap/*.properties";
 
 	/**
-	 * 定义切点,设置拦截规则
-	 * 
-	 * @return
-	 */
-	@Bean
-	public AspectJExpressionPointcut pointcut() {
-		Class<?> clazz = this.getPointcutClass();
-		SpringApplicationContext.registerBean(clazz, StringUtil.uncapitalize(clazz.getSimpleName()));
-
-		AspectJExpressionPointcut aspectJExpPointcut = new AspectJExpressionPointcut();
-		aspectJExpPointcut.setExpression(this.expression);
-		return aspectJExpPointcut;
-	}
-
-	/**
-	 * 前置通知
-	 * 
-	 * @return
-	 */
-	@Bean
-	public DefaultPointcutAdvisor beforeAdvisor() {
-		Method method = ReflectUtil.getMethod(this.getPointcutClass(), "before", JoinPoint.class);
-		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
-		AspectJMethodBeforeAdvice beforeAdvice = new AspectJMethodBeforeAdvice(method, this.pointcut(), saif);
-
-		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
-		defaultPointcutAdvisor.setPointcut(this.pointcut());
-		defaultPointcutAdvisor.setAdvice(beforeAdvice);
-		return defaultPointcutAdvisor;
-	}
-
-	/**
-	 * 返回后通知
-	 * 
-	 * @return
-	 */
-	@Bean
-	public DefaultPointcutAdvisor afterReturningAdvisor() {
-		Method method = ReflectUtil.getMethod(GlobalAopAspect.class, "afterReturning", JoinPoint.class);
-		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
-		AspectJAfterReturningAdvice afterReturningAdvice = new AspectJAfterReturningAdvice(method, this.pointcut(),
-				saif);
-		afterReturningAdvice.setReturningName("returnValue");
-
-		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
-		defaultPointcutAdvisor.setPointcut(this.pointcut());
-		defaultPointcutAdvisor.setAdvice(afterReturningAdvice);
-		return defaultPointcutAdvisor;
-	}
-
-	/**
-	 * 抛出异常后通知
-	 * 
-	 * @return
-	 */
-	@Bean
-	public DefaultPointcutAdvisor afterThrowingAdvisor() {
-		Method method = ReflectUtil.getMethod(GlobalAopAspect.class, "afterThrowing", JoinPoint.class);
-		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
-		AspectJAfterThrowingAdvice afterThrowingAdvice = new AspectJAfterThrowingAdvice(method, this.pointcut(), saif);
-		afterThrowingAdvice.setThrowingName("exception");
-
-		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
-		defaultPointcutAdvisor.setPointcut(this.pointcut());
-		defaultPointcutAdvisor.setAdvice(afterThrowingAdvice);
-		return defaultPointcutAdvisor;
-	}
-
-	/**
-	 * 后置通知
-	 * 
-	 * @return
-	 */
-	@Bean
-	public DefaultPointcutAdvisor afterAdvisor() {
-		Method method = ReflectUtil.getMethod(GlobalAopAspect.class, "after", JoinPoint.class);
-		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
-		AspectJAfterAdvice afterAdvice = new AspectJAfterAdvice(method, this.pointcut(), saif);
-
-		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
-		defaultPointcutAdvisor.setPointcut(this.pointcut());
-		defaultPointcutAdvisor.setAdvice(afterAdvice);
-		return defaultPointcutAdvisor;
-	}
-
-	/**
-	 * 环绕通知
-	 * 
-	 * @return
-	 */
-	@Bean
-	public DefaultPointcutAdvisor aroundAdvisor() {
-		// AspectJExpressionPointcutAdvisor advisor = new AspectJExpressionPointcutAdvisor();
-		Method method = ReflectUtil.getMethod(GlobalAopAspect.class, "around", ProceedingJoinPoint.class);
-		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
-		AspectJAroundAdvice aroundAdvice = new AspectJAroundAdvice(method, this.pointcut(), saif);
-
-		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
-		defaultPointcutAdvisor.setPointcut(this.pointcut());
-		defaultPointcutAdvisor.setAdvice(aroundAdvice);
-		return defaultPointcutAdvisor;
-	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	private Class<?> getPointcutClass() {
-		try {
-			Class<?> clazz = Class.forName(this.pointcutClass);
-			return clazz;
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
 	 * 方法描述
 	 * 
 	 * @return
 	 */
-	private Map<String, String> methodDescription() {
+	@Bean
+	public Map<String, String> mdMap() {
 		Map<String, String> map = new HashMap<String, String>();
 		try {
 			Resource[] resources = PATH_RESOURCE_RESOLVER.getResources(pattern);
@@ -198,5 +82,136 @@ public class AopConfigurer {
 			logger.error("加载方法描述出错！错误原因: ", ex);
 		}
 		return map;
+	}
+
+	/**
+	 * 定义切点,设置拦截规则
+	 * 
+	 * @return
+	 */
+	@Bean
+	public AspectJExpressionPointcut pointcut() {
+		AspectJExpressionPointcut aspectJExpPointcut = new AspectJExpressionPointcut();
+		aspectJExpPointcut.setExpression(this.expression);
+		return aspectJExpPointcut;
+	}
+
+	/**
+	 * 前置通知
+	 * 
+	 * @return
+	 */
+	@Bean
+	public DefaultPointcutAdvisor beforeAdvisor() {
+		Method method = ReflectUtil.getMethod(this.getPointcutClass(), "before", JoinPoint.class);
+		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
+		AspectJMethodBeforeAdvice beforeAdvice = new AspectJMethodBeforeAdvice(method, this.pointcut(), saif);
+		beforeAdvice.setAspectName("beforeAdvice");
+
+		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
+		defaultPointcutAdvisor.setPointcut(this.pointcut());
+		defaultPointcutAdvisor.setAdvice(beforeAdvice);
+		return defaultPointcutAdvisor;
+	}
+
+	/**
+	 * 返回后通知
+	 * 
+	 * @return
+	 */
+	@Bean
+	public DefaultPointcutAdvisor afterReturningAdvisor() {
+		Method method = ReflectUtil.getMethod(this.getPointcutClass(), "afterReturning", JoinPoint.class);
+		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
+		AspectJAfterReturningAdvice afterReturningAdvice = new AspectJAfterReturningAdvice(method, this.pointcut(),
+				saif);
+		afterReturningAdvice.setAspectName("afterReturningAdvice");
+		afterReturningAdvice.setReturningName("returnValue");
+
+		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
+		defaultPointcutAdvisor.setPointcut(this.pointcut());
+		defaultPointcutAdvisor.setAdvice(afterReturningAdvice);
+		return defaultPointcutAdvisor;
+	}
+
+	/**
+	 * 抛出异常后通知
+	 * 
+	 * @return
+	 */
+	@Bean
+	public DefaultPointcutAdvisor afterThrowingAdvisor() {
+		Method method = ReflectUtil.getMethod(this.getPointcutClass(), "afterThrowing", JoinPoint.class);
+		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
+		AspectJAfterThrowingAdvice afterThrowingAdvice = new AspectJAfterThrowingAdvice(method, this.pointcut(), saif);
+		afterThrowingAdvice.setAspectName("afterThrowingAdvice");
+		afterThrowingAdvice.setThrowingName("exception");
+
+		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
+		defaultPointcutAdvisor.setPointcut(this.pointcut());
+		defaultPointcutAdvisor.setAdvice(afterThrowingAdvice);
+		return defaultPointcutAdvisor;
+	}
+
+	/**
+	 * 后置通知
+	 * 
+	 * @return
+	 */
+	@Bean
+	public DefaultPointcutAdvisor afterAdvisor() {
+		Method method = ReflectUtil.getMethod(this.getPointcutClass(), "after", JoinPoint.class);
+		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
+		AspectJAfterAdvice afterAdvice = new AspectJAfterAdvice(method, this.pointcut(), saif);
+		afterAdvice.setAspectName("afterAdvice");
+
+		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
+		defaultPointcutAdvisor.setPointcut(this.pointcut());
+		defaultPointcutAdvisor.setAdvice(afterAdvice);
+		return defaultPointcutAdvisor;
+	}
+
+	/**
+	 * 环绕通知
+	 * 
+	 * @return
+	 */
+	@Bean
+	public DefaultPointcutAdvisor aroundAdvisor() {
+		// AspectJExpressionPointcutAdvisor advisor = new AspectJExpressionPointcutAdvisor();
+		Method method = ReflectUtil.getMethod(this.getPointcutClass(), "around", ProceedingJoinPoint.class);
+		SimpleAspectInstanceFactory saif = new SimpleAspectInstanceFactory(method.getDeclaringClass());
+		AspectJAroundAdvice aroundAdvice = new AspectJAroundAdvice(method, this.pointcut(), saif);
+		aroundAdvice.setAspectName("aroundAdvice");
+
+		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
+		defaultPointcutAdvisor.setPointcut(this.pointcut());
+		defaultPointcutAdvisor.setAdvice(aroundAdvice);
+		return defaultPointcutAdvisor;
+	}
+
+	/**
+	 * 自动注册
+	 * 
+	 * @return
+	 */
+//	private Object autoRegist() {
+//		Class<?> clazz = this.getPointcutClass();
+//		Object pointcutObj = SpringApplicationContext.registBean(clazz, StringUtil.uncapitalize(clazz.getSimpleName()));
+//		ReflectUtil.setValueByFieldName(pointcutObj, "mdMap", this.mdMap());
+//		return pointcutObj;
+//	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	private Class<?> getPointcutClass() {
+		try {
+			Class<?> clazz = Class.forName(this.pointcutClass);
+			return clazz;
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

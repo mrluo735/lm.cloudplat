@@ -202,6 +202,11 @@ public class ConfigurerConstant {
 		 */
 		public static class ActiveMQ {
 			/**
+			 * 生产端
+			 */
+			public static final String PRODUCER_BOOT = "lm.com.configurer.mq.activemq.producer.boot";
+
+			/**
 			 * 消费端
 			 */
 			public static final String CONSUMER_BOOT = "lm.com.configurer.mq.activemq.consumer.boot";

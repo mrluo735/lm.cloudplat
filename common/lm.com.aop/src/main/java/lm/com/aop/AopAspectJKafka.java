@@ -29,10 +29,25 @@ import lm.com.framework.StringUtil;
 public class AopAspectJKafka extends AbstractAopAspectJ {
 	private static final Logger logger = LoggerFactory.getLogger(AopAspectJKafka.class);
 
-	@Autowired
 	private KafkaTemplate<byte[], byte[]> kafkaTemplate;
-	
+
 	private Map<String, String> mdMap = new HashMap<String, String>();
+
+	/**
+	 * 
+	 * @return
+	 */
+	public KafkaTemplate<byte[], byte[]> getKafkaTemplate() {
+		return kafkaTemplate;
+	}
+
+	/**
+	 * 
+	 * @param kafkaTemplate
+	 */
+	public void setKafkaTemplate(KafkaTemplate<byte[], byte[]> kafkaTemplate) {
+		this.kafkaTemplate = kafkaTemplate;
+	}
 
 	/**
 	 * 

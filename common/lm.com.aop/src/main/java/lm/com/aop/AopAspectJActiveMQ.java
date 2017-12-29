@@ -7,7 +7,6 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsMessagingTemplate;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -28,26 +27,9 @@ import lm.com.framework.StringUtil;
 public class AopAspectJActiveMQ extends AbstractAopAspectJ {
 	private static final Logger logger = LoggerFactory.getLogger(AopAspectJActiveMQ.class);
 
-	@Autowired
-	private JmsMessagingTemplate jmsMessagingTemplate;
+	public static JmsMessagingTemplate jmsMessagingTemplate;
 
-	private Map<String, String> mdMap = new HashMap<String, String>();
-
-	/**
-	 * 
-	 * @return
-	 */
-	public Map<String, String> getMdMap() {
-		return this.mdMap;
-	}
-
-	/**
-	 * 
-	 * @param mdMap
-	 */
-	public void setMdMap(Map<String, String> mdMap) {
-		this.mdMap = mdMap;
-	}
+	public static Map<String, String> mdMap = new HashMap<String, String>();
 
 	/**
 	 * 前置通知
@@ -115,7 +97,7 @@ public class AopAspectJActiveMQ extends AbstractAopAspectJ {
 			for (Map.Entry<String, String> item : logMap.entrySet()) {
 				if (StringUtil.isNullOrWhiteSpace(item.getValue()))
 					continue;
-				this.jmsMessagingTemplate.convertAndSend(
+				jmsMessagingTemplate.convertAndSend(
 						AbstractAopAspectJ.LOG_SYSTEM_PREFIX + item.getKey().toUpperCase(), item.getValue());
 			}
 		} catch (Throwable ex) {
@@ -125,7 +107,7 @@ public class AopAspectJActiveMQ extends AbstractAopAspectJ {
 
 			// 写错误日志
 			String errorLog = LogUtil.getErrorLog(aopClass, ex.getMessage());
-			this.jmsMessagingTemplate.convertAndSend(
+			jmsMessagingTemplate.convertAndSend(
 					AbstractAopAspectJ.LOG_SYSTEM_PREFIX + EnumLogType.Error.name().toUpperCase(), errorLog);
 
 			// 事务回滚

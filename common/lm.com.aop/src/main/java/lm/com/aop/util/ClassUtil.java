@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lm.com.aop.model.AopClass;
 import lm.com.aop.model.EnumClassType;
+import lm.com.framework.JavaUtil;
 import lm.com.framework.JsonUtil;
 import lm.com.framework.ReflectUtil;
 
@@ -153,9 +154,9 @@ public class ClassUtil {
 		Class<?>[] parameterTypes = codeSignature.getParameterTypes();
 		Object[] parameterValues = joinPoint.getArgs();
 		StringBuilder sb = new StringBuilder();
-		sb.append("参数名称 = ".concat(JsonUtil.toJsonUseFastJson(parameterNames)).concat("\n"));
-		sb.append("参数类型 = ".concat(JsonUtil.toJsonUseFastJson(parameterTypes)).concat("\n"));
-		sb.append("参数值 = ".concat(JsonUtil.toJsonUseFastJson(parameterValues)).concat("\n"));
+		sb.append("参数名称 = ".concat(JsonUtil.toJsonUseJackson(parameterNames)).concat(JavaUtil.getLineSeparator()));
+		sb.append("参数类型 = ".concat(JsonUtil.toJsonUseJackson(parameterTypes)).concat(JavaUtil.getLineSeparator()));
+		sb.append("参数值 = ".concat(JsonUtil.toJsonUseJackson(parameterValues)).concat(JavaUtil.getLineSeparator()));
 		return sb.toString();
 	}
 

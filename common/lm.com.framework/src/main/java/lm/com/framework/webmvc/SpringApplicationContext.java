@@ -11,6 +11,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import lm.com.framework.map.MapUtil;
+
 /**
  * spring应用程序上下文
  * 
@@ -43,7 +45,7 @@ public class SpringApplicationContext implements ApplicationContextAware {
 	}
 
 	/**
-	 * 注册Bean
+	 * 重载+1 注册Bean
 	 * 
 	 * @param clazz
 	 * @param beanName
@@ -51,7 +53,44 @@ public class SpringApplicationContext implements ApplicationContextAware {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T registerBean(Class<T> clazz, String beanName, Map.Entry<String, Object>... properties) {
+	public static <T> T registBeanAsT(Class<T> clazz, String beanName) {
+		return (T) registBean(clazz, beanName, null);
+	}
+
+	/**
+	 * 重载+2 注册Bean
+	 * 
+	 * @param clazz
+	 * @param beanName
+	 * @param properties
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T registBeanAsT(Class<T> clazz, String beanName, Map<String, Object> properties) {
+		return (T) registBean(clazz, beanName, properties);
+	}
+
+	/**
+	 * 重载+1 注册Bean
+	 * 
+	 * @param clazz
+	 * @param beanName
+	 * @param properties
+	 * @return
+	 */
+	public static Object registBean(Class<?> clazz, String beanName) {
+		return registBean(clazz, beanName, null);
+	}
+
+	/**
+	 * 重载+2 注册Bean
+	 * 
+	 * @param clazz
+	 * @param beanName
+	 * @param properties
+	 * @return
+	 */
+	public static Object registBean(Class<?> clazz, String beanName, Map<String, Object> properties) {
 		ConfigurableApplicationContext configurableApplicationContext = (ConfigurableApplicationContext) applicationContext;
 
 		// 获取bean工厂并转换为DefaultListableBeanFactory  
@@ -61,14 +100,14 @@ public class SpringApplicationContext implements ApplicationContextAware {
 		// 通过BeanDefinitionBuilder创建bean定义  
 		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(clazz);
 		// 设置属性
-		if (properties != null) {
-			for (Map.Entry<String, Object> item : properties) {
+		if (MapUtil.isNotEmpty(properties)) {
+			for (Map.Entry<String, Object> item : properties.entrySet()) {
 				beanDefinitionBuilder.addPropertyValue(item.getKey(), item.getValue());
 			}
 		}
 		// 注册bean  
 		defaultListableBeanFactory.registerBeanDefinition(beanName, beanDefinitionBuilder.getRawBeanDefinition());
-		return (T) defaultListableBeanFactory.getBean(beanName);
+		return defaultListableBeanFactory.getBean(beanName);
 	}
 
 	/**
